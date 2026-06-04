@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英语学习 English Learning — Lucy</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <h1 class="app-title">&#127891; 英语学习 English Learning</h1>
+      <span class="streak-badge" id="streakBadge" title="连续打卡天数 Consecutive days"></span>
+    </div>
+  </header>
+
+  <nav class="tab-nav" role="tablist" aria-label="Main navigation">
+    <button class="tab-btn active" role="tab" aria-selected="true"  data-tab="plan">&#128197; 计划 Plan</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="resources">&#128218; 资源 Resources</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="progress">&#128200; 进度 Progress</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="reminder">&#128276; 提醒 Reminder</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="review">&#128221; 复盘 Review</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="notebook">&#128211; 笔记本 Notebook</button>
+  </nav>
+
+  <main class="app-main">
+
+    <!-- ============ PLAN ============ -->
+    <section id="tab-plan" class="tab-panel active" aria-label="Learning Plan">
+      <div class="section-header">
+        <h2>学习计划 Learning Plan</h2>
+        <button class="btn-primary" id="openGoalModal">&#9881; 设置目标 Set Goal</button>
+      </div>
+
+      <div class="goal-card" id="goalDisplay">
+        <span class="goal-text" id="goalText">暂未设置目标，点击"设置目标"开始。No goal set yet. Click "Set Goal" to get started.</span>
+      </div>
+
+      <!-- Date navigation bar -->
+      <div class="date-nav mt-16">
+        <button class="date-nav-arrow" id="planPrevDay" title="昨天 Yesterday">&#8592; <span class="date-nav-side-label">昨天 Yesterday</span></button>
+        <div class="date-nav-center">
+          <span class="date-nav-label" id="planDateLabel"></span>
+        </div>
+        <button class="date-nav-arrow" id="planNextDay" title="明天 Tomorrow"><span class="date-nav-side-label">明天 Tomorrow</span> &#8594;</button>
+      </div>
+
+      <div class="section-header mt-8">
+        <h3 id="taskSectionTitle">今日任务 Today's Tasks</h3>
+        <button class="btn-primary" id="openTaskModal">&#43; 添加任务 Add Task</button>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">全部 All</button>
+        <button class="filter-btn" data-filter="listening">&#128266; 听力 Listening</button>
+        <button class="filter-btn" data-filter="speaking">&#127908; 口语 Speaking</button>
+        <button class="filter-btn" data-filter="reading">&#128214; 阅读 Reading</button>
+        <button class="filter-btn" data-filter="writing">&#9999;&#65039; 写作 Writing</button>
+        <button class="filter-btn" data-filter="vocabulary">&#128216; 词汇 Vocab</button>
+      </div>
+
+      <ul class="task-list" id="taskList"></ul>
+    </section>
+
+    <!-- ============ RESOURCES ============ -->
+    <section id="tab-resources" class="tab-panel" aria-label="Resources">
+      <div class="section-header">
+        <h2>学习资源 Resources</h2>
+        <button class="btn-primary" id="openResourceModal">&#43; 添加资源 Add Resource</button>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-rfilter="all">全部 All</button>
+        <button class="filter-btn" data-rfilter="listening">&#128266; 听力 Listening</button>
+        <button class="filter-btn" data-rfilter="speaking">&#127908; 口语 Speaking</button>
+        <button class="filter-btn" data-rfilter="reading">&#128214; 阅读 Reading</button>
+        <button class="filter-btn" data-rfilter="writing">&#9999;&#65039; 写作 Writing</button>
+        <button class="filter-btn" data-rfilter="vocabulary">&#128216; 词汇 Vocab</button>
+        <button class="filter-btn" data-rfilter="other">&#128193; 其他 Other</button>
+      </div>
+
+      <div class="resource-grid" id="resourceGrid"></div>
+    </section>
+
+    <!-- ============ PROGRESS ============ -->
+    <section id="tab-progress" class="tab-panel" aria-label="Progress">
+      <div class="section-header">
+        <h2>学习进度 Progress</h2>
+        <button class="btn-primary" id="openCheckinModal">&#10003; 今日打卡 Check In Today</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="statStreak">0</div>
+          <div class="stat-label">连续打卡 Streak &#128293;</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statTotalHours">0h</div>
+          <div class="stat-label">总时长 Total Hours</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statCompletionRate">0%</div>
+          <div class="stat-label">完成率 Completion Rate</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statThisWeek">0h</div>
+          <div class="stat-label">本周 This Week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statVocabTotal">0</div>
+          <div class="stat-label">词汇积累 Vocabulary</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statVocabMastered">0</div>
+          <div class="stat-label">已掌握 Mastered</div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-header">
+          <h3>学习时长 Weekly Study Time</h3>
+          <div class="chart-toggle">
+            <button class="chart-btn active" data-range="week">本周 Week</button>
+            <button class="chart-btn" data-range="month">本月 Month</button>
+          </div>
+        </div>
+        <canvas id="progressChart" width="600" height="220" aria-label="Progress bar chart"></canvas>
+      </div>
+
+      <div class="checkin-history">
+        <h3>最近打卡 Recent Check-ins</h3>
+        <ul class="checkin-list" id="checkinList"></ul>
+      </div>
+    </section>
+
+    <!-- ============ REMINDER ============ -->
+    <section id="tab-reminder" class="tab-panel" aria-label="Reminder">
+      <div class="section-header">
+        <h2>每日提醒 Daily Reminder</h2>
+      </div>
+
+      <div class="reminder-card">
+        <div class="reminder-row">
+          <label for="reminderTime" class="reminder-label">&#9200; 提醒时间 Reminder Time</label>
+          <input type="time" id="reminderTime" class="time-input" value="09:00" />
+        </div>
+
+        <div class="reminder-row">
+          <label class="reminder-label">&#128276; 开启提醒 Enable Reminder</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="reminderEnabled" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="reminder-row">
+          <span class="reminder-label">权限状态 Permission Status</span>
+          <span class="permission-badge" id="permissionBadge">未知 Unknown</span>
+        </div>
+
+        <button class="btn-primary mt-16" id="saveReminder">保存 Save Reminder</button>
+        <button class="btn-secondary mt-8" id="testReminder">&#127381; 测试通知 Test Notification</button>
+
+        <p class="reminder-hint">
+          提醒使用浏览器通知 API，需保持浏览器开启才能收到通知，关闭标签页后通知将停止。<br>
+          Reminders use the browser Notification API. The browser must be open for reminders to fire.
+          If you close the tab, notifications will not be sent.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ REVIEW ============ -->
+    <section id="tab-review" class="tab-panel" aria-label="Review">
+      <div class="section-header">
+        <h2>学习复盘 Review Notes</h2>
+        <button class="btn-primary" id="openReviewModal">&#43; 新建复盘 New Review</button>
+      </div>
+
+      <ul class="review-list" id="reviewList"></ul>
+    </section>
+
+    <!-- ============ NOTEBOOK ============ -->
+    <section id="tab-notebook" class="tab-panel" aria-label="Notebook">
+      <div class="section-header">
+        <h2>笔记本 Notebook</h2>
+      </div>
+
+      <!-- Sub-tabs -->
+      <nav class="sub-tab-nav" role="tablist" aria-label="Notebook sub-navigation">
+        <button class="sub-tab-btn active" role="tab" aria-selected="true"  data-subtab="vocab">&#128214; 词汇本 Vocabulary</button>
+        <button class="sub-tab-btn"        role="tab" aria-selected="false" data-subtab="shadowing">&#127909; 跟读记录 Shadowing Log</button>
+      </nav>
+
+      <!-- Vocab sub-panel -->
+      <div id="subtab-vocab" class="sub-tab-panel active">
+        <div class="section-header mt-12">
+          <div class="nb-search-wrap">
+            <input type="search" id="vocabSearch" class="nb-search" placeholder="&#128269; 搜索单词或释义 Search word or meaning…" />
+          </div>
+          <button class="btn-primary" id="openVocabModal">&#43; 添加单词 Add Word</button>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-vfilter="all">全部 All</button>
+          <button class="filter-btn" data-vfilter="new">&#128308; 生疏 New</button>
+          <button class="filter-btn" data-vfilter="familiar">&#129000; 模糊 Familiar</button>
+          <button class="filter-btn" data-vfilter="mastered">&#128994; 熟悉 Mastered</button>
+        </div>
+
+        <div class="vocab-list" id="vocabList"></div>
+      </div>
+
+      <!-- Shadowing sub-panel -->
+      <div id="subtab-shadowing" class="sub-tab-panel">
+        <div class="section-header mt-12">
+          <h3></h3>
+          <button class="btn-primary" id="openShadowingModal">&#43; 添加记录 Add Log</button>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-sfilter="all">全部 All</button>
+          <button class="filter-btn" data-sfilter="tv">&#128250; 美剧 TV</button>
+          <button class="filter-btn" data-sfilter="ted">&#127897; TED</button>
+          <button class="filter-btn" data-sfilter="movie">&#127916; 电影 Movie</button>
+          <button class="filter-btn" data-sfilter="other">&#128193; 其他 Other</button>
+        </div>
+
+        <div class="shadowing-list" id="shadowingList"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- ===== MODALS ===== -->
+
+  <!-- Goal Modal -->
+  <div class="modal-overlay" id="goalModal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="goalModalTitle">设置学习目标 Set Learning Goal</h3>
+        <button class="modal-close" data-close="goalModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label" for="goalInput">目标描述 Goal Description</label>
+        <textarea id="goalInput" class="form-textarea" rows="3" placeholder="例如：每天学习30分钟，12月前通过四六级… e.g. Study 30 minutes daily, pass CET-6 by December..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="goalModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveGoal">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Modal -->
+  <div class="modal-overlay" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="taskModalTitle">添加任务 Add Task</h3>
+        <button class="modal-close" data-close="taskModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="taskEditId" />
+        <label class="form-label" for="taskName">任务名称 Task Name</label>
+        <input type="text" id="taskName" class="form-input" placeholder="例如：听BBC播客 e.g. Listen to BBC podcast" />
+
+        <label class="form-label" for="taskType">类型 Type</label>
+        <select id="taskType" class="form-select">
+          <option value="listening">&#128266; 听力 Listening</option>
+          <option value="speaking">&#127908; 口语 Speaking</option>
+          <option value="reading">&#128214; 阅读 Reading</option>
+          <option value="writing">&#9999;&#65039; 写作 Writing</option>
+          <option value="vocabulary">&#128216; 词汇 Vocabulary</option>
+        </select>
+
+        <label class="form-label" for="taskDuration">时长（分钟）Duration (minutes)</label>
+        <input type="number" id="taskDuration" class="form-input" min="1" max="480" value="30" />
+
+        <label class="form-label" for="taskSchedule">频率 Schedule</label>
+        <select id="taskSchedule" class="form-select">
+          <option value="daily">每日 Daily</option>
+          <option value="weekday">工作日 Weekday (Mon–Fri)</option>
+          <option value="weekend">周末 Weekend (Sat–Sun)</option>
+          <option value="date">指定日期 Specific Date</option>
+        </select>
+
+        <div id="taskDateRow" style="display:none;">
+          <label class="form-label" for="taskDate">指定日期 Date</label>
+          <input type="date" id="taskDate" class="form-input" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="taskModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveTask">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource Modal -->
+  <div class="modal-overlay" id="resourceModal" role="dialog" aria-modal="true" aria-labelledby="resourceModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="resourceModalTitle">添加资源 Add Resource</h3>
+        <button class="modal-close" data-close="resourceModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="resourceEditId" />
+        <label class="form-label" for="resourceTitle">标题 Title</label>
+        <input type="text" id="resourceTitle" class="form-input" placeholder="例如：BBC英语 e.g. BBC Learning English" />
+
+        <label class="form-label" for="resourceUrl">链接 URL</label>
+        <input type="url" id="resourceUrl" class="form-input" placeholder="https://..." />
+
+        <label class="form-label" for="resourceCategory">分类 Category</label>
+        <select id="resourceCategory" class="form-select">
+          <option value="listening">&#128266; 听力 Listening</option>
+          <option value="speaking">&#127908; 口语 Speaking</option>
+          <option value="reading">&#128214; 阅读 Reading</option>
+          <option value="writing">&#9999;&#65039; 写作 Writing</option>
+          <option value="vocabulary">&#128216; 词汇 Vocabulary</option>
+          <option value="other">&#128193; 其他 Other</option>
+        </select>
+
+        <label class="form-label" for="resourceNote">备注 Notes (optional)</label>
+        <textarea id="resourceNote" class="form-textarea" rows="2" placeholder="关于这个资源的备注… Any notes about this resource..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="resourceModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveResource">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-in Modal -->
+  <div class="modal-overlay" id="checkinModal" role="dialog" aria-modal="true" aria-labelledby="checkinModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="checkinModalTitle">今日打卡 Today's Check-in</h3>
+        <button class="modal-close" data-close="checkinModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label" for="checkinMinutes">今日学习时长（分钟）Study time today (minutes)</label>
+        <input type="number" id="checkinMinutes" class="form-input" min="1" max="1440" value="30" />
+
+        <div class="checkin-tasks-display">
+          <span class="form-label">今日已完成任务 Tasks completed today</span>
+          <span id="checkinTasksDisplay" class="checkin-tasks-count">0</span>
+        </div>
+
+        <label class="form-label" for="checkinNote">简短备注 Quick note (optional)</label>
+        <input type="text" id="checkinNote" class="form-input" placeholder="今天主要学了什么？What did you focus on today?" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="checkinModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveCheckin">打卡 Check In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div class="modal-overlay" id="reviewModal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="reviewModalTitle">新建复盘 New Review Note</h3>
+        <button class="modal-close" data-close="reviewModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reviewEditId" />
+        <label class="form-label" for="reviewTitle">标题 Title</label>
+        <input type="text" id="reviewTitle" class="form-input" placeholder="例如：第3周复盘 e.g. Week 3 Reflection" />
+
+        <label class="form-label" for="reviewDate">日期 Date</label>
+        <input type="date" id="reviewDate" class="form-input" />
+
+        <label class="form-label" for="reviewContent">内容 Content</label>
+        <textarea id="reviewContent" class="form-textarea" rows="4" placeholder="学了什么？哪里有困难？What did you learn? What was challenging?"></textarea>
+
+        <label class="form-label" for="reviewInsight">核心收获 Key Takeaway</label>
+        <textarea id="reviewInsight" class="form-textarea" rows="2" placeholder="最重要的一条心得… Main insight or lesson learned..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="reviewModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveReview">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review View Modal (read-only) -->
+  <div class="modal-overlay" id="reviewViewModal" role="dialog" aria-modal="true" aria-labelledby="reviewViewTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="reviewViewTitle"></h3>
+        <button class="modal-close" data-close="reviewViewModal">&#10005;</button>
+      </div>
+      <div class="modal-body" id="reviewViewBody"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="reviewViewModal">关闭 Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vocab Modal -->
+  <div class="modal-overlay" id="vocabModal" role="dialog" aria-modal="true" aria-labelledby="vocabModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="vocabModalTitle">添加单词 Add Word</h3>
+        <button class="modal-close" data-close="vocabModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="vocabEditId" />
+        <label class="form-label" for="vocabWord">单词 Word</label>
+        <div class="vocab-word-row">
+          <input type="text" id="vocabWord" class="form-input" placeholder="e.g. ephemeral" />
+          <span class="vocab-lookup-status" id="vocabLookupStatus"></span>
+        </div>
+        <p class="vocab-lookup-hint" id="vocabLookupHint"></p>
+
+        <label class="form-label" for="vocabPhonetic">音标 Phonetic (optional)</label>
+        <input type="text" id="vocabPhonetic" class="form-input" placeholder="e.g. /ɪˈfem.ər.əl/" />
+
+        <label class="form-label" for="vocabMeaning">释义 Meaning</label>
+        <textarea id="vocabMeaning" class="form-textarea" rows="3" placeholder="（中文释义）&#10;English meaning here…"></textarea>
+
+        <label class="form-label" for="vocabExample">例句 Example (optional)</label>
+        <textarea id="vocabExample" class="form-textarea" rows="2" placeholder="Example sentence…"></textarea>
+
+        <label class="form-label" for="vocabSource">来源 Source (optional)</label>
+        <input type="text" id="vocabSource" class="form-input" placeholder="e.g. TED演讲 / 《生活大爆炸》S01E01" />
+
+        <label class="form-label" for="vocabLevel">掌握程度 Level</label>
+        <select id="vocabLevel" class="form-select">
+          <option value="new">&#128308; 生疏 New</option>
+          <option value="familiar">&#129000; 模糊 Familiar</option>
+          <option value="mastered">&#128994; 熟悉 Mastered</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="vocabModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveVocab">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shadowing Modal -->
+  <div class="modal-overlay" id="shadowingModal" role="dialog" aria-modal="true" aria-labelledby="shadowingModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="shadowingModalTitle">添加跟读记录 Add Shadowing Log</h3>
+        <button class="modal-close" data-close="shadowingModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="shadowingEditId" />
+        <label class="form-label" for="shadowingSource">来源 Source</label>
+        <input type="text" id="shadowingSource" class="form-input" placeholder="e.g. 《生活大爆炸》S01E03" />
+
+        <label class="form-label" for="shadowingSourceType">类型 Type</label>
+        <select id="shadowingSourceType" class="form-select">
+          <option value="tv">&#128250; 美剧 TV Series</option>
+          <option value="ted">&#127897; TED演讲 TED Talk</option>
+          <option value="movie">&#127916; 电影 Movie</option>
+          <option value="other">&#128193; 其他 Other</option>
+        </select>
+
+        <label class="form-label" for="shadowingContent">跟读内容 Content</label>
+        <textarea id="shadowingContent" class="form-textarea" rows="3" placeholder="跟读的台词或片段原文…"></textarea>
+
+        <label class="form-label" for="shadowingDifficulty">难点标注 Difficulty Notes (optional)</label>
+        <input type="text" id="shadowingDifficulty" class="form-input" placeholder="e.g. 连读、弱读、语调…" />
+
+        <label class="form-label" for="shadowingDate">日期 Date</label>
+        <input type="date" id="shadowingDate" class="form-input" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="shadowingModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveShadowing">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
