@@ -1710,6 +1710,45 @@ body {
 .vocab-quick-btn:hover { background: var(--clr-primary-light); border-color: var(--clr-primary); }
 
 /* ============================================================
+   Plan summary action buttons
+   ============================================================ */
+.plan-summary-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.plan-action-btn {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: .9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid var(--clr-border);
+  background: var(--clr-surface2);
+  color: var(--clr-text);
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+
+.plan-action-btn:hover {
+  border-color: var(--clr-primary);
+  color: var(--clr-primary);
+}
+
+.plan-action-reset {
+  color: var(--clr-danger, #ef4444);
+  border-color: var(--clr-danger, #ef4444);
+}
+
+.plan-action-reset:hover {
+  background: #fef2f2;
+  border-color: var(--clr-danger, #ef4444);
+  color: var(--clr-danger, #ef4444);
+}
+
+/* ============================================================
    Scrollbar (webkit)
    ============================================================ */
 ::-webkit-scrollbar        { width: 6px; height: 6px; }

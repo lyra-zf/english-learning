@@ -1976,6 +1976,39 @@ function saveStudyPlan() {
   renderStudyPlanSummary();
 }
 
+function editStudyPlan() {
+  document.getElementById('planSummaryCard').style.display = 'none';
+  const settingsCard = document.querySelector('.plan-settings-card');
+  settingsCard.style.display = 'block';
+  settingsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetStudyPlan() {
+  const ok = confirm(
+    '确定要废止当前学习计划吗？此操作不可撤销。\nAre you sure you want to reset your study plan? This cannot be undone.'
+  );
+  if (!ok) return;
+
+  localStorage.removeItem('el_study_plan');
+  document.getElementById('planSummaryCard').style.display = 'none';
+  document.querySelector('.plan-settings-card').style.display = 'block';
+
+  // Reset radio buttons to defaults: duration=3months, dailyMinutes=60, level=b1
+  const defaults = { planDuration: '3months', planDailyMinutes: '60', planLevel: 'b1' };
+  for (const [group, val] of Object.entries(defaults)) {
+    document.querySelectorAll(`.plan-settings-card [data-group="${group}"]`).forEach(b => {
+      b.classList.toggle('selected', b.dataset.value === val);
+    });
+  }
+
+  // Reset weekday picker to Mon–Fri
+  document.querySelectorAll('#weekdayPicker .weekday-btn').forEach(btn => {
+    const day = parseInt(btn.dataset.day, 10);
+    btn.classList.toggle('selected', day >= 1 && day <= 5);
+  });
+  updateWeekdaySummary();
+}
+
 function renderStudyPlanSummary() {
   const plan = load('el_study_plan', null);
   const card = document.getElementById('planSummaryCard');
