@@ -1494,6 +1494,7 @@ let materialFilter = 'all';
 
 function initMaterials() {
   renderMaterials();
+  initStepRecordModal();
 
   document.getElementById('openMaterialModal').addEventListener('click', () => {
     clearMaterialForm();
@@ -1555,16 +1556,169 @@ function saveMaterial() {
   closeModal('materialModal');
 }
 
-function advanceMaterialStep(id) {
+// Module-level state for the step-record modal
+let _stepRecordMaterialId = null;
+
+function openStepRecordModal(id) {
   const materials = load('el_materials', []);
   const m = materials.find(m => m.id === id);
   if (!m || m.step === 'done') return;
+
+  _stepRecordMaterialId = id;
+
+  const step = m.step;
+  const titles = {
+    listening:     '记录盲听情况 Log Blind Listening',
+    dictation:     '记录听写情况 Log Dictation',
+    understanding: '记录吃透情况 Log Understanding',
+    recitation:    '记录背诵情况 Log Recitation',
+  };
+  document.getElementById('stepRecordModalTitle').textContent = titles[step] || '记录步骤 Log Step';
+  document.getElementById('stepRecordBody').innerHTML = buildStepRecordBody(step, id);
+
+  // Wire radio button groups
+  document.getElementById('stepRecordBody').querySelectorAll('.radio-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const grp = btn.dataset.group;
+      document.querySelectorAll(`[data-group="${grp}"]`).forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  // Wire vocab quick-link if present
+  const vBtn = document.getElementById('stepVocabQuickBtn');
+  if (vBtn) {
+    vBtn.addEventListener('click', () => {
+      closeModal('stepRecordModal');
+      switchToNotebookSubtab('vocab');
+      populateVocabMaterialSelect(id);
+      clearVocabForm();
+      populateVocabMaterialSelect(id);
+      document.getElementById('vocabModalTitle').textContent = '添加单词 Add Word';
+      openModal('vocabModal');
+    });
+  }
+
+  openModal('stepRecordModal');
+}
+
+function buildStepRecordBody(step, materialId) {
+  if (step === 'listening') {
+    return `
+      <div class="step-record-section">
+        <label class="form-label">听了几遍 Listening rounds</label>
+        <input type="number" id="srRounds" class="form-input" min="1" value="1" style="max-width:120px" />
+      </div>
+      <div class="step-record-section">
+        <label class="form-label">听懂程度 Comprehension</label>
+        <div class="radio-group">
+          <span class="radio-btn selected" data-group="comprehension" data-value="low">&lt; 30%（大部分没听懂）</span>
+          <span class="radio-btn" data-group="comprehension" data-value="mid">30–70%（大概能跟上）</span>
+          <span class="radio-btn" data-group="comprehension" data-value="high">&gt; 70%（基本听懂）</span>
+        </div>
+      </div>
+      <div class="step-record-section">
+        <label class="form-label" for="srNote">备注 Notes (选填)</label>
+        <input type="text" id="srNote" class="form-input" placeholder="任何备注…" />
+      </div>`;
+  }
+  if (step === 'dictation') {
+    return `
+      <div class="step-record-section">
+        <label class="form-label">听写完成度 Completion</label>
+        <div class="radio-group">
+          <span class="radio-btn selected" data-group="completion" data-value="partial">&lt; 50%（完成了一部分）</span>
+          <span class="radio-btn" data-group="completion" data-value="most">50–80%（完成了大部分）</span>
+          <span class="radio-btn" data-group="completion" data-value="full">&gt; 80%（基本完成）</span>
+        </div>
+      </div>
+      <div class="step-record-section">
+        <label class="form-label" for="srNote">备注 Notes (选填)</label>
+        <input type="text" id="srNote" class="form-input" placeholder="任何备注…" />
+      </div>`;
+  }
+  if (step === 'understanding') {
+    return `
+      <div class="step-record-section">
+        <label class="form-label" for="srDiffNotes">难点笔记 Difficulty Notes (选填)</label>
+        <textarea id="srDiffNotes" class="form-textarea" rows="3"
+          placeholder="记录不懂的词、句型、语法点… Note down tricky words, grammar, or expressions…"></textarea>
+      </div>
+      <button class="vocab-quick-btn" id="stepVocabQuickBtn">
+        &#128214; 去词汇本添加生词 Add to Vocabulary
+      </button>`;
+  }
+  if (step === 'recitation') {
+    return `
+      <div class="step-record-section">
+        <label class="form-label">练了几遍 Practice rounds</label>
+        <input type="number" id="srRounds" class="form-input" min="1" value="3" style="max-width:120px" />
+      </div>
+      <div class="step-record-section">
+        <label class="form-label">是否达到原速 Matched original speed</label>
+        <div class="radio-group">
+          <span class="radio-btn selected" data-group="matchedSpeed" data-value="yes">✅ 是，已达到原速</span>
+          <span class="radio-btn" data-group="matchedSpeed" data-value="no">❌ 还没有，继续练</span>
+        </div>
+      </div>
+      <div class="step-record-section">
+        <label class="form-label" for="srNote">自评备注 Self-assessment (选填)</label>
+        <input type="text" id="srNote" class="form-input" placeholder="任何备注…" />
+      </div>`;
+  }
+  return '';
+}
+
+function collectStepRecord(step) {
+  const body = document.getElementById('stepRecordBody');
+  const record = { step, completedAt: todayStr() };
+
+  if (step === 'listening') {
+    record.rounds        = parseInt(body.querySelector('#srRounds')?.value, 10) || 1;
+    record.comprehension = body.querySelector('[data-group="comprehension"].selected')?.dataset.value || 'low';
+    record.note          = body.querySelector('#srNote')?.value.trim() || '';
+  } else if (step === 'dictation') {
+    record.completion = body.querySelector('[data-group="completion"].selected')?.dataset.value || 'partial';
+    record.note       = body.querySelector('#srNote')?.value.trim() || '';
+  } else if (step === 'understanding') {
+    record.difficultyNotes = body.querySelector('#srDiffNotes')?.value.trim() || '';
+  } else if (step === 'recitation') {
+    record.rounds        = parseInt(body.querySelector('#srRounds')?.value, 10) || 3;
+    record.matchedSpeed  = body.querySelector('[data-group="matchedSpeed"].selected')?.dataset.value || 'yes';
+    record.note          = body.querySelector('#srNote')?.value.trim() || '';
+  }
+
+  return record;
+}
+
+function confirmStepRecord() {
+  const id = _stepRecordMaterialId;
+  if (!id) return;
+
+  const materials = load('el_materials', []);
+  const m = materials.find(m => m.id === id);
+  if (!m || m.step === 'done') return;
+
+  const record = collectStepRecord(m.step);
+
+  // Append to stepLogs
+  if (!Array.isArray(m.stepLogs)) m.stepLogs = [];
+  m.stepLogs.push(record);
+
+  // Advance step
   const idx = MATERIAL_STEPS.indexOf(m.step);
   m.step = MATERIAL_STEPS[Math.min(idx + 1, MATERIAL_STEPS.length - 1)];
   if (m.step === 'done') m.completedAt = todayStr();
+
   save('el_materials', materials);
+  closeModal('stepRecordModal');
+  _stepRecordMaterialId = null;
   renderMaterials();
   renderStats();
+}
+
+function initStepRecordModal() {
+  document.getElementById('confirmStepRecord').addEventListener('click', confirmStepRecord);
 }
 
 function editMaterial(id) {
@@ -1616,8 +1770,9 @@ function renderMaterials() {
     const stepIdx = MATERIAL_STEPS.indexOf(m.step);
     const isDone  = m.step === 'done';
 
-    // Build step dots (4 workflow steps, not including 'done')
+    // Build step dots with tooltips from stepLogs
     const workSteps = MATERIAL_STEPS.slice(0, 4);
+    const stepLogs  = Array.isArray(m.stepLogs) ? m.stepLogs : [];
     const dots = workSteps.map((s, i) => {
       const isCompleted = isDone || i < stepIdx;
       const isCurrent   = !isDone && i === stepIdx;
@@ -1626,7 +1781,32 @@ function renderMaterials() {
       const connector = i < workSteps.length - 1
         ? `<div class="step-connector${connectorFilled ? ' filled' : ''}"></div>`
         : '';
-      return `<div class="step-dot ${cls}" title="${STEP_LABELS[s]}"></div>${connector}`;
+      // Build tooltip from stepLog for completed step
+      let tooltipHtml = '';
+      if (isCompleted) {
+        const log = stepLogs.find(l => l.step === s);
+        if (log) {
+          let tip = '';
+          if (s === 'listening') {
+            const pct = log.comprehension === 'low' ? '<30%' : log.comprehension === 'mid' ? '30–70%' : '>70%';
+            tip = `听了${log.rounds || 1}遍，听懂~${pct}`;
+          } else if (s === 'dictation') {
+            const pct = log.completion === 'partial' ? '<50%' : log.completion === 'most' ? '50–80%' : '>80%';
+            tip = `完成度：${pct}`;
+          } else if (s === 'understanding') {
+            tip = log.difficultyNotes ? '有难点笔记' : '无笔记';
+          } else if (s === 'recitation') {
+            const spd = log.matchedSpeed === 'yes' ? '已达到原速' : '未达到原速';
+            tip = `练了${log.rounds || 3}遍，${spd}`;
+          }
+          tooltipHtml = tip ? `<div class="step-dot-tooltip">${escHtml(tip)}</div>` : '';
+        } else {
+          tooltipHtml = `<div class="step-dot-tooltip">${escHtml(STEP_LABELS[s] || s)}</div>`;
+        }
+      } else {
+        tooltipHtml = `<div class="step-dot-tooltip">${escHtml(STEP_LABELS[s] || s)}</div>`;
+      }
+      return `<div class="step-dot-wrap"><div class="step-dot ${cls}">${tooltipHtml}</div></div>${connector}`;
     }).join('');
 
     const typeLabel = MAT_TYPE_LABELS[m.sourceType] || m.sourceType;
@@ -1664,7 +1844,7 @@ function renderMaterials() {
       const card = e.target.closest('.material-card');
       const id   = card.dataset.id;
       const action = btn.dataset.action;
-      if (action === 'advance')    advanceMaterialStep(id);
+      if (action === 'advance')    openStepRecordModal(id);
       if (action === 'edit-mat')   editMaterial(id);
       if (action === 'delete-mat') deleteMaterial(id);
     });

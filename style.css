@@ -1369,6 +1369,100 @@ body {
 }
 
 /* ============================================================
+   Step record modal — styled radio button groups
+   ============================================================ */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.radio-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--clr-border);
+  background: var(--clr-surface2);
+  color: var(--clr-text-muted);
+  font-size: .84rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: all var(--transition);
+  white-space: nowrap;
+  user-select: none;
+}
+.radio-btn:hover { border-color: var(--clr-primary); color: var(--clr-primary); }
+.radio-btn.selected {
+  background: var(--clr-primary);
+  border-color: var(--clr-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.step-record-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.step-record-section .form-label { margin-bottom: 2px; }
+
+/* Step dot tooltip wrapper — acts as the dot's positioning parent */
+.step-dot-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-dot-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--clr-text);
+  color: var(--clr-surface);
+  font-size: .72rem;
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.15s ease;
+  max-width: 200px;
+  white-space: normal;
+  min-width: 120px;
+  line-height: 1.4;
+}
+
+.step-dot-wrap:hover .step-dot-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* vocab quick-link button inside modal body */
+.vocab-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--clr-surface2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  font-size: .86rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--clr-text);
+  transition: background var(--transition), border-color var(--transition);
+  width: 100%;
+  justify-content: center;
+}
+.vocab-quick-btn:hover { background: var(--clr-primary-light); border-color: var(--clr-primary); }
+
+/* ============================================================
    Scrollbar (webkit)
    ============================================================ */
 ::-webkit-scrollbar        { width: 6px; height: 6px; }

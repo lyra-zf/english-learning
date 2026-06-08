@@ -522,6 +522,23 @@
     </div>
   </div>
 
+  <!-- Step Record Modal -->
+  <div class="modal-overlay" id="stepRecordModal" role="dialog" aria-modal="true" aria-labelledby="stepRecordModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="stepRecordModalTitle">记录步骤 Log Step</h3>
+        <button class="modal-close" data-close="stepRecordModal">&#10005;</button>
+      </div>
+      <div class="modal-body" id="stepRecordBody">
+        <!-- dynamically populated per step -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="stepRecordModal">取消 Cancel</button>
+        <button class="btn-primary" id="confirmStepRecord">确认并推进 Confirm &amp; Advance</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Material Modal -->
   <div class="modal-overlay" id="materialModal" role="dialog" aria-modal="true" aria-labelledby="materialModalTitle">
     <div class="modal">
