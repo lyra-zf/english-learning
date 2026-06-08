@@ -1996,7 +1996,7 @@ function renderStudyPlanSummary() {
 function seedInitialData() {
   if (localStorage.getItem('el_seeded')) return;
 
-  save(KEY.goal, "3个月内提升英语口语流利度、准确性和表达自信，能在日常对话、工作交流及常见社交场景中自如运用英语。\nImprove spoken English fluency, accuracy and confidence within 3 months — able to communicate naturally in daily conversations, work settings and common social situations.");
+  save(KEY.goal, "提升英语口语流利度、准确性和表达自信，能在日常对话、工作交流及常见社交场景中自如运用英语。\nImprove spoken English fluency, accuracy and confidence — able to communicate naturally in daily conversations, work settings and common social situations.");
 
   save(KEY.tasks, [
     {
