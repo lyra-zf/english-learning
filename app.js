@@ -2043,21 +2043,26 @@ function renderStudyPlanSummary() {
 // ─── LEVEL TEST ───────────────────────────────────────────────────────────────
 
 const LEVEL_TEST_MATERIALS = [
-  { id: 'a1-1', level: 'a1', title: 'OME #1 - My Name',      duration: 1, url: 'https://elllo.org/video/A1BEG/index.htm' },
-  { id: 'a1-2', level: 'a1', title: 'OME #2 - My Job',       duration: 1, url: 'https://elllo.org/video/A1BEG/index.htm' },
-  { id: 'a1-3', level: 'a1', title: 'A1 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/A1/index.html' },
-  { id: 'a2-1', level: 'a2', title: 'A2 One Minute English', duration: 1, url: 'https://elllo.org/video/A2BEG/index.htm' },
-  { id: 'a2-2', level: 'a2', title: 'A2 Views #1',           duration: 3, url: 'https://elllo.org/levels/A2-English-Lessons/A2-VIEWS-01-25.html' },
-  { id: 'a2-3', level: 'a2', title: 'A2 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/A2/index.html' },
-  { id: 'b1-1', level: 'b1', title: 'B1 One Minute English', duration: 1, url: 'https://elllo.org/video/B1INT/index.htm' },
-  { id: 'b1-2', level: 'b1', title: 'B1 Views #1',           duration: 3, url: 'https://elllo.org/levels/B1-English-Lessons/B1-VIEWS-01-25.html' },
-  { id: 'b1-3', level: 'b1', title: 'B1 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/B1/index.html' },
-  { id: 'b2-1', level: 'b2', title: 'B2 One Minute English', duration: 1, url: 'https://elllo.org/video/B2INT/index.htm' },
-  { id: 'b2-2', level: 'b2', title: 'B2 Views #1',           duration: 3, url: 'https://elllo.org/levels/B2-English-Lessons/B2-VIEWS-01-25.html' },
-  { id: 'b2-3', level: 'b2', title: 'B2 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/B2/index.html' },
-  { id: 'c1-1', level: 'c1', title: 'C1 One Minute English', duration: 1, url: 'https://elllo.org/video/C1ADV/index.htm' },
-  { id: 'c1-2', level: 'c1', title: 'C1 Views #1',           duration: 3, url: 'https://elllo.org/levels/C1-English-Lessons/C1-VIEWS-01-25.html' },
-  { id: 'c1-3', level: 'c1', title: 'C1 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/index.html' },
+  // A1
+  { id: 'a1-1', level: 'a1', title: 'A1 Listening – Everyday conversations',    duration: 3, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/a1' },
+  { id: 'a1-2', level: 'a1', title: 'A1 Listening – Meeting people & shopping', duration: 3, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/a1' },
+  { id: 'a1-3', level: 'a1', title: 'A1 Listening – Basic phrases practice',    duration: 3, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/a1' },
+  // A2
+  { id: 'a2-1', level: 'a2', title: 'A2 Listening – Short dialogues',               duration: 4, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/a2' },
+  { id: 'a2-2', level: 'a2', title: 'A2 Listening – Announcements & messages',      duration: 4, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/a2' },
+  { id: 'a2-3', level: 'a2', title: 'A2 Listening – Introductions & explanations',  duration: 4, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/a2' },
+  // B1
+  { id: 'b1-1', level: 'b1', title: 'B1 Listening – Phone calls & meetings',    duration: 5, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/b1' },
+  { id: 'b1-2', level: 'b1', title: 'B1 Listening – Job-related topics',        duration: 5, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/b1' },
+  { id: 'b1-3', level: 'b1', title: 'B1 Listening – Everyday standard speech',  duration: 5, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/b1' },
+  // B2
+  { id: 'b2-1', level: 'b2', title: 'B2 Listening – Discussions & debates',     duration: 6, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/b2' },
+  { id: 'b2-2', level: 'b2', title: 'B2 Listening – News & current affairs',    duration: 6, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/b2' },
+  { id: 'b2-3', level: 'b2', title: 'B2 Listening – Complex conversations',     duration: 6, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/b2' },
+  // C1
+  { id: 'c1-1', level: 'c1', title: 'C1 Listening – Advanced topics',           duration: 7, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/c1' },
+  { id: 'c1-2', level: 'c1', title: 'C1 Listening – Academic & professional',   duration: 7, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/c1' },
+  { id: 'c1-3', level: 'c1', title: 'C1 Listening – Fast natural speech',       duration: 7, url: 'https://learnenglish.britishcouncil.org/free-resources/listening/c1' },
 ];
 
 // Test session state
