@@ -37,30 +37,101 @@
         <span class="goal-text" id="goalText">暂未设置目标，点击"设置目标"开始。No goal set yet. Click "Set Goal" to get started.</span>
       </div>
 
-      <!-- Date navigation bar -->
-      <div class="date-nav mt-16">
-        <button class="date-nav-arrow" id="planPrevDay" title="昨天 Yesterday">&#8592; <span class="date-nav-side-label">昨天 Yesterday</span></button>
-        <div class="date-nav-center">
-          <span class="date-nav-label" id="planDateLabel"></span>
+      <!-- Plan sub-tabs -->
+      <nav class="sub-tab-nav mt-12" role="tablist" aria-label="Plan sub-navigation">
+        <button class="sub-tab-btn active" role="tab" aria-selected="true"  data-plantab="studyplan">&#128203; 学习规划 Study Plan</button>
+        <button class="sub-tab-btn"        role="tab" aria-selected="false" data-plantab="dailytasks">&#128197; 每日任务 Daily Tasks</button>
+      </nav>
+
+      <!-- Study Plan sub-panel -->
+      <div id="plantab-studyplan" class="sub-tab-panel active">
+        <!-- Settings card -->
+        <div class="plan-settings-card mt-12">
+          <h3 class="plan-card-title">&#9881;&#65039; 规划设置 Plan Settings</h3>
+
+          <div class="plan-field">
+            <label class="form-label">学习周期 Duration</label>
+            <div class="radio-group" id="planDuration">
+              <span class="radio-btn" data-group="planDuration" data-value="1month">1个月 1 Month</span>
+              <span class="radio-btn selected" data-group="planDuration" data-value="3months">3个月 3 Months</span>
+              <span class="radio-btn" data-group="planDuration" data-value="6months">半年 6 Months</span>
+            </div>
+          </div>
+
+          <div class="plan-field">
+            <label class="form-label">每日学习时长 Daily Study Time</label>
+            <div class="radio-group" id="planDailyMinutes">
+              <span class="radio-btn" data-group="planDailyMinutes" data-value="30">30分钟 30 min</span>
+              <span class="radio-btn selected" data-group="planDailyMinutes" data-value="60">1小时 1 hr</span>
+              <span class="radio-btn" data-group="planDailyMinutes" data-value="90">1.5小时 1.5 hr</span>
+              <span class="radio-btn" data-group="planDailyMinutes" data-value="120">2小时 2 hr</span>
+            </div>
+          </div>
+
+          <div class="plan-field">
+            <label class="form-label">每周学习天数 Days per Week</label>
+            <div class="radio-group" id="planDaysPerWeek">
+              <span class="radio-btn selected" data-group="planDaysPerWeek" data-value="5">5天 5 Days（工作日 Weekday）</span>
+              <span class="radio-btn" data-group="planDaysPerWeek" data-value="7">7天 7 Days（每天 Every Day）</span>
+            </div>
+          </div>
+
+          <div class="plan-field">
+            <label class="form-label">当前水平 Current Level</label>
+            <div class="radio-group" id="planLevel">
+              <span class="radio-btn" data-group="planLevel" data-value="beginner">初级 Beginner</span>
+              <span class="radio-btn selected" data-group="planLevel" data-value="intermediate">中级 Intermediate</span>
+              <span class="radio-btn" data-group="planLevel" data-value="advanced">进阶 Advanced</span>
+            </div>
+          </div>
+
+          <button class="btn-primary mt-12" id="saveStudyPlan">保存规划 Save Plan</button>
         </div>
-        <button class="date-nav-arrow" id="planNextDay" title="明天 Tomorrow"><span class="date-nav-side-label">明天 Tomorrow</span> &#8594;</button>
+
+        <!-- Summary card (shown after plan saved) -->
+        <div class="plan-summary-card mt-12" id="planSummaryCard" style="display:none;">
+          <h3 class="plan-card-title">&#128202; 规划摘要 Plan Summary</h3>
+          <div id="planSummaryContent"></div>
+
+          <!-- Overall progress bar -->
+          <div class="plan-overall-progress mt-12">
+            <div class="plan-progress-header">
+              <span class="form-label" id="planOverallLabel">已学习 0 天 / 共 0 天</span>
+            </div>
+            <div class="material-progress-track mt-4">
+              <div class="material-progress-fill" id="planOverallFill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="section-header mt-8">
-        <h3 id="taskSectionTitle">今日任务 Today's Tasks</h3>
-        <button class="btn-primary" id="openTaskModal">&#43; 添加任务 Add Task</button>
-      </div>
+      <!-- Daily Tasks sub-panel -->
+      <div id="plantab-dailytasks" class="sub-tab-panel">
+        <!-- Date navigation bar -->
+        <div class="date-nav mt-12">
+          <button class="date-nav-arrow" id="planPrevDay" title="昨天 Yesterday">&#8592; <span class="date-nav-side-label">昨天 Yesterday</span></button>
+          <div class="date-nav-center">
+            <span class="date-nav-label" id="planDateLabel"></span>
+          </div>
+          <button class="date-nav-arrow" id="planNextDay" title="明天 Tomorrow"><span class="date-nav-side-label">明天 Tomorrow</span> &#8594;</button>
+        </div>
 
-      <div class="filter-bar">
-        <button class="filter-btn active" data-filter="all">全部 All</button>
-        <button class="filter-btn" data-filter="listening">&#128266; 听力 Listening</button>
-        <button class="filter-btn" data-filter="speaking">&#127908; 口语 Speaking</button>
-        <button class="filter-btn" data-filter="reading">&#128214; 阅读 Reading</button>
-        <button class="filter-btn" data-filter="writing">&#9999;&#65039; 写作 Writing</button>
-        <button class="filter-btn" data-filter="vocabulary">&#128216; 词汇 Vocab</button>
-      </div>
+        <div class="section-header mt-8">
+          <h3 id="taskSectionTitle">今日任务 Today's Tasks</h3>
+          <button class="btn-primary" id="openTaskModal">&#43; 添加任务 Add Task</button>
+        </div>
 
-      <ul class="task-list" id="taskList"></ul>
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all">全部 All</button>
+          <button class="filter-btn" data-filter="listening">&#128266; 听力 Listening</button>
+          <button class="filter-btn" data-filter="speaking">&#127908; 口语 Speaking</button>
+          <button class="filter-btn" data-filter="reading">&#128214; 阅读 Reading</button>
+          <button class="filter-btn" data-filter="writing">&#9999;&#65039; 写作 Writing</button>
+          <button class="filter-btn" data-filter="vocabulary">&#128216; 词汇 Vocab</button>
+        </div>
+
+        <ul class="task-list" id="taskList"></ul>
+      </div>
     </section>
 
     <!-- ============ RESOURCES ============ -->

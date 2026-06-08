@@ -1851,6 +1851,146 @@ function renderMaterials() {
   });
 }
 
+// ─── STUDY PLAN ───────────────────────────────────────────────────────────────
+
+const PLAN_STEP_MINUTES = {
+  beginner:     { listening: 60, dictation: 180, understanding: 90, recitation: 120 },
+  intermediate: { listening: 60, dictation: 120, understanding: 60, recitation: 90  },
+  advanced:     { listening: 60, dictation: 90,  understanding: 45, recitation: 60  },
+};
+
+const PLAN_DURATION_DAYS = { '1month': 30, '3months': 90, '6months': 180 };
+
+function initStudyPlan() {
+  // Wire radio btn groups inside plan settings card
+  document.querySelectorAll('.plan-settings-card .radio-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const grp = btn.dataset.group;
+      document.querySelectorAll(`.plan-settings-card [data-group="${grp}"]`)
+        .forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  // Load saved plan and reflect into buttons
+  const saved = load('el_study_plan', null);
+  if (saved) reflectPlanToUI(saved);
+
+  document.getElementById('saveStudyPlan').addEventListener('click', saveStudyPlan);
+
+  // Plan sub-tabs
+  document.querySelectorAll('[data-plantab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-plantab]').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.sub-tab-panel[id^="plantab-"]').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      document.getElementById('plantab-' + btn.dataset.plantab).classList.add('active');
+      if (btn.dataset.plantab === 'studyplan') renderStudyPlanSummary();
+    });
+  });
+
+  // Render summary if plan exists
+  if (saved) renderStudyPlanSummary();
+}
+
+function reflectPlanToUI(plan) {
+  const map = {
+    planDuration:    String(plan.duration),
+    planDailyMinutes:String(plan.dailyMinutes),
+    planDaysPerWeek: String(plan.daysPerWeek),
+    planLevel:       plan.level,
+  };
+  for (const [group, val] of Object.entries(map)) {
+    document.querySelectorAll(`.plan-settings-card [data-group="${group}"]`).forEach(b => {
+      b.classList.toggle('selected', b.dataset.value === val);
+    });
+  }
+}
+
+function readPlanFromUI() {
+  const get = group => {
+    const el = document.querySelector(`.plan-settings-card [data-group="${group}"].selected`);
+    return el ? el.dataset.value : null;
+  };
+  return {
+    duration:     get('planDuration')     || '3months',
+    dailyMinutes: parseInt(get('planDailyMinutes') || '60', 10),
+    daysPerWeek:  parseInt(get('planDaysPerWeek')  || '5',  10),
+    level:        get('planLevel')        || 'intermediate',
+  };
+}
+
+function saveStudyPlan() {
+  const plan = { ...readPlanFromUI(), startDate: todayStr() };
+  const existing = load('el_study_plan', null);
+  if (existing) plan.startDate = existing.startDate || todayStr();
+  save('el_study_plan', plan);
+  renderStudyPlanSummary();
+}
+
+function renderStudyPlanSummary() {
+  const plan = load('el_study_plan', null);
+  const card = document.getElementById('planSummaryCard');
+  if (!plan) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  const totalDays    = PLAN_DURATION_DAYS[plan.duration] || 90;
+  const studyDays    = Math.round(totalDays * plan.daysPerWeek / 7);
+  const stepMins     = PLAN_STEP_MINUTES[plan.level] || PLAN_STEP_MINUTES.intermediate;
+  const totalPerMat  = stepMins.listening + stepMins.dictation + stepMins.understanding + stepMins.recitation;
+  const daysPerMat   = Math.ceil(totalPerMat / plan.dailyMinutes);
+  const matsCount    = Math.min(10, Math.floor(studyDays / daysPerMat));
+
+  const durationLabel = { '1month': '1个月 1 Month', '3months': '3个月 3 Months', '6months': '半年 6 Months' }[plan.duration] || plan.duration;
+  const levelLabel    = { beginner: '初级 Beginner', intermediate: '中级 Intermediate', advanced: '进阶 Advanced' }[plan.level] || plan.level;
+
+  // Today's suggestion
+  const materials    = load('el_materials', []);
+  const inProgress   = materials.find(m => m.step !== 'done');
+  let suggestion     = '';
+  if (!inProgress) {
+    suggestion = '建议今天：去语料本添加第一篇语料，开始你的第一步！<br>Tip: Add your first material in the Materials tab to get started!';
+  } else if (materials.every(m => m.step === 'done') && materials.length > 0) {
+    suggestion = '🎉 太棒了！所有语料已完成，建议添加新语料继续练习<br>All materials done! Add new ones to keep going.';
+  } else {
+    const t = escHtml(inProgress.title);
+    const tips = {
+      listening:     `建议今天：完成《${t}》的盲听练习（约60分钟）<br>Suggested today: Complete blind listening for "${t}" (~60 min)`,
+      dictation:     `建议今天：继续《${t}》的听写练习<br>Suggested today: Continue dictation for "${t}"`,
+      understanding: `建议今天：吃透《${t}》，查词记录难点<br>Suggested today: Work through "${t}" — look up words and note difficulty`,
+      recitation:    `建议今天：背诵《${t}》，目标达到原速<br>Suggested today: Recite "${t}" until you match the original speed`,
+    };
+    suggestion = tips[inProgress.step] || '';
+  }
+
+  // Progress bar
+  const checkins  = load(KEY.checkins, []);
+  const daysLogged = checkins.length;
+  const pct        = totalDays > 0 ? Math.min(100, Math.round((daysLogged / totalDays) * 100)) : 0;
+  document.getElementById('planOverallLabel').textContent = `已学习 ${daysLogged} 天 / 共 ${totalDays} 天`;
+  document.getElementById('planOverallFill').style.width  = pct + '%';
+
+  document.getElementById('planSummaryContent').innerHTML = `
+    <div class="plan-summary-row">
+      <span class="plan-summary-icon">&#128197;</span>
+      <span class="plan-summary-text">学习周期：<strong>${escHtml(durationLabel)}</strong>，共 ${totalDays} 天，可学习 <strong>${studyDays}</strong> 天<br>Duration: ${escHtml(durationLabel)}, ${totalDays} days total, ${studyDays} study days</span>
+    </div>
+    <div class="plan-summary-row">
+      <span class="plan-summary-icon">&#9201;</span>
+      <span class="plan-summary-text">每日学习：<strong>${plan.dailyMinutes} 分钟</strong> / 当前水平：<strong>${escHtml(levelLabel)}</strong><br>Daily: ${plan.dailyMinutes} min / Level: ${escHtml(levelLabel)}</span>
+    </div>
+    <div class="plan-summary-row">
+      <span class="plan-summary-icon">&#128196;</span>
+      <span class="plan-summary-text">预计完成语料：<strong>${matsCount} 篇</strong>（每篇约 ${daysPerMat} 天）<br>Estimated materials: <strong>${matsCount}</strong> (~${daysPerMat} days each)</span>
+    </div>
+    <div class="plan-today-suggestion">&#127919; ${suggestion}</div>
+  `;
+}
+
 // ─── Seed initial data ────────────────────────────────────────────────────────
 
 function seedInitialData() {
@@ -1881,30 +2021,6 @@ function seedInitialData() {
       id: 't4', name: '睡前复习 Bedtime Review',
       duration: 30, type: 'vocabulary', schedule: 'daily',
       detail: '复习当天学习内容，背诵积累的词汇、短语和句式。\nReview the day\'s learning, memorize accumulated vocabulary, phrases and sentence patterns.',
-      timeSlot: '21:30–22:00', done: false, createdAt: '2026-06-04',
-    },
-    {
-      id: 't5', name: '周末TED精听 Weekend TED Listening',
-      duration: 60, type: 'listening', schedule: 'weekly',
-      detail: '精听一篇TED演讲，做笔记记录观点与精彩表达，之后模仿演讲者进行复述。\nIntensively listen to a TED talk, take notes on key ideas and expressions, then shadow the speaker.',
-      timeSlot: '07:30–08:30', done: false, createdAt: '2026-06-04',
-    },
-    {
-      id: 't6', name: '周末英文电影 Weekend English Movie',
-      duration: 45, type: 'listening', schedule: 'weekly',
-      detail: '看英文电影，观影后用英语写影评，梳理情节、分析人物。\nWatch an English movie, then write a review in English covering plot and character analysis.',
-      timeSlot: '12:30–13:15', done: false, createdAt: '2026-06-04',
-    },
-    {
-      id: 't7', name: '周末英语角 Weekend English Corner',
-      duration: 30, type: 'speaking', schedule: 'weekly',
-      detail: '参与英语角线上交流，与伙伴围绕给定主题讨论，注意互动回应，提升交流能力。\nJoin an online English corner, discuss a given topic with partners, focus on interaction and response.',
-      timeSlot: '19:00–19:30', done: false, createdAt: '2026-06-04',
-    },
-    {
-      id: 't8', name: '周末总结复盘 Weekend Weekly Review',
-      duration: 30, type: 'vocabulary', schedule: 'weekly',
-      detail: '复习本周学习内容，总结进步与不足，制定下周改进计划。\nReview the week\'s learning, summarize progress and gaps, plan improvements for next week.',
       timeSlot: '21:30–22:00', done: false, createdAt: '2026-06-04',
     },
   ]);
@@ -1957,6 +2073,7 @@ function init() {
   seedInitialData();
   initTabs();
   initGoal();
+  initStudyPlan();
   initDateNav();
   initTasks();
   initResources();

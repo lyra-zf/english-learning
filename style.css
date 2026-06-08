@@ -1370,6 +1370,62 @@ body {
 }
 
 /* ============================================================
+   Study Plan cards
+   ============================================================ */
+.plan-settings-card,
+.plan-summary-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--clr-text);
+}
+
+.plan-field {
+  margin-bottom: 16px;
+}
+.plan-field .form-label { margin-bottom: 6px; }
+
+.plan-summary-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--clr-border);
+  font-size: .92rem;
+}
+.plan-summary-row:last-child { border-bottom: none; }
+
+.plan-summary-icon { flex-shrink: 0; font-size: 1rem; }
+.plan-summary-text { flex: 1; line-height: 1.5; }
+.plan-summary-text strong { color: var(--clr-primary); }
+
+.plan-today-suggestion {
+  background: var(--clr-primary-light);
+  border-left: 4px solid var(--clr-primary);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: .9rem;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+.plan-overall-progress .plan-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mt-4 { margin-top: 4px; }
+
+/* ============================================================
    Step record modal — styled radio button groups
    ============================================================ */
 .radio-group {
