@@ -21,6 +21,7 @@
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="reminder">&#128276; 提醒 Reminder</button>
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="review">&#128221; 复盘 Review</button>
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="notebook">&#128211; 笔记本 Notebook</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="materials">&#128196; 语料本 Materials</button>
   </nav>
 
   <main class="app-main">
@@ -113,6 +114,14 @@
         <div class="stat-card">
           <div class="stat-value" id="statVocabMastered">0</div>
           <div class="stat-label">已掌握 Mastered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statMaterialsDone">0</div>
+          <div class="stat-label">已完成语料 Done</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statMaterialsInProgress">0</div>
+          <div class="stat-label">进行中语料 In Progress</div>
         </div>
       </div>
 
@@ -227,6 +236,35 @@
 
         <div class="shadowing-list" id="shadowingList"></div>
       </div>
+    </section>
+
+    <!-- ============ MATERIALS ============ -->
+    <section id="tab-materials" class="tab-panel" aria-label="Materials">
+      <div class="section-header">
+        <h2>语料本 Materials</h2>
+        <button class="btn-primary" id="openMaterialModal">&#43; 添加语料 Add Material</button>
+      </div>
+
+      <!-- Progress overview bar -->
+      <div class="material-progress-bar-wrap">
+        <span class="material-progress-label" id="materialProgressLabel">已完成 0 / 0 篇</span>
+        <div class="material-progress-track">
+          <div class="material-progress-fill" id="materialProgressFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar mt-12">
+        <button class="filter-btn active" data-mfilter="all">全部 All</button>
+        <button class="filter-btn" data-mfilter="inprogress">进行中 In Progress</button>
+        <button class="filter-btn" data-mfilter="done">已完成 Done</button>
+        <button class="filter-btn" data-mfilter="news">&#128240; 新闻 News</button>
+        <button class="filter-btn" data-mfilter="interview">&#127897; 访谈 Interview</button>
+        <button class="filter-btn" data-mfilter="documentary">&#127916; 纪录片 Doc</button>
+        <button class="filter-btn" data-mfilter="other">&#128193; 其他 Other</button>
+      </div>
+
+      <div class="material-list" id="materialList"></div>
     </section>
 
   </main>
@@ -435,6 +473,11 @@
           <option value="familiar">&#129000; 模糊 Familiar</option>
           <option value="mastered">&#128994; 熟悉 Mastered</option>
         </select>
+
+        <label class="form-label" for="vocabMaterialId">来源语料 Source Material (选填 optional)</label>
+        <select id="vocabMaterialId" class="form-select">
+          <option value="">— 不关联 None —</option>
+        </select>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" data-close="vocabModal">取消 Cancel</button>
@@ -475,6 +518,53 @@
       <div class="modal-footer">
         <button class="btn-secondary" data-close="shadowingModal">取消 Cancel</button>
         <button class="btn-primary" id="saveShadowing">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Material Modal -->
+  <div class="modal-overlay" id="materialModal" role="dialog" aria-modal="true" aria-labelledby="materialModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="materialModalTitle">添加语料 Add Material</h3>
+        <button class="modal-close" data-close="materialModal">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="materialEditId" />
+        <label class="form-label" for="materialTitle">标题 Title</label>
+        <input type="text" id="materialTitle" class="form-input" placeholder="e.g. TED: The power of vulnerability" />
+
+        <label class="form-label" for="materialUrl">来源链接 URL (选填 optional)</label>
+        <input type="url" id="materialUrl" class="form-input" placeholder="https://..." />
+
+        <label class="form-label" for="materialDuration">时长（分钟）Duration (minutes)</label>
+        <input type="number" id="materialDuration" class="form-input" min="1" max="600" value="10" />
+
+        <label class="form-label" for="materialSourceType">类型 Type</label>
+        <select id="materialSourceType" class="form-select">
+          <option value="news">&#128240; 新闻 News</option>
+          <option value="interview">&#127897; 访谈 Interview</option>
+          <option value="documentary">&#127916; 纪录片 Documentary</option>
+          <option value="other">&#128193; 其他 Other</option>
+        </select>
+
+        <label class="form-label" for="materialNote">备注 Notes (选填 optional)</label>
+        <textarea id="materialNote" class="form-textarea" rows="2" placeholder="任何备注…"></textarea>
+
+        <div id="materialStepRow">
+          <label class="form-label" for="materialStep">当前步骤 Current Step</label>
+          <select id="materialStep" class="form-select">
+            <option value="listening">&#127911; 盲听 Blind Listen</option>
+            <option value="dictation">&#9999;&#65039; 听写 Dictation</option>
+            <option value="understanding">&#128218; 吃透 Understand</option>
+            <option value="recitation">&#128483;&#65039; 背诵 Recite</option>
+            <option value="done">&#9989; 已完成 Done</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="materialModal">取消 Cancel</button>
+        <button class="btn-primary" id="saveMaterial">保存 Save</button>
       </div>
     </div>
   </div>

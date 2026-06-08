@@ -1160,13 +1160,212 @@ body {
 .toast-btn:hover { background: var(--clr-primary-dark); }
 
 /* ============================================================
-   Stats row — 3-col on medium, 2-col on small (override for 6 cards)
+   Stats row — responsive for up to 8 cards
    ============================================================ */
 @media (min-width: 600px) {
-  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .stats-row { grid-template-columns: repeat(4, 1fr); }
 }
-@media (min-width: 800px) {
-  .stats-row { grid-template-columns: repeat(6, 1fr); }
+@media (min-width: 900px) {
+  .stats-row { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ============================================================
+   Materials — Progress bar
+   ============================================================ */
+.material-progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.material-progress-label {
+  font-size: .85rem;
+  color: var(--clr-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.material-progress-track {
+  flex: 1;
+  height: 8px;
+  background: var(--clr-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.material-progress-fill {
+  height: 100%;
+  background: var(--clr-primary);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  min-width: 0;
+}
+
+/* ============================================================
+   Materials — Card list
+   ============================================================ */
+.material-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.material-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.material-card.is-done {
+  opacity: .75;
+  border-left: 4px solid #10B981;
+}
+
+/* Step dots column */
+.material-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 4px;
+  flex-shrink: 0;
+}
+
+.step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--clr-border);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.step-dot.completed { background: var(--clr-primary); }
+
+.step-dot.current {
+  background: var(--clr-primary);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.25);
+  animation: stepPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(124,58,237,.25); }
+  50%       { box-shadow: 0 0 0 6px rgba(124,58,237,.1); }
+}
+
+/* Connector line between dots */
+.step-connector {
+  width: 2px;
+  height: 12px;
+  background: var(--clr-border);
+  border-radius: 1px;
+}
+.step-connector.filled { background: var(--clr-primary); }
+
+/* Material body */
+.material-body { flex: 1; min-width: 0; }
+
+.material-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.material-title {
+  font-weight: 700;
+  font-size: 1rem;
+  flex: 1;
+  line-height: 1.3;
+}
+
+.material-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+.material-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: .8rem;
+  color: var(--clr-text-muted);
+}
+
+.mat-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: .72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.mat-type-badge.news         { background: #DBEAFE; color: #1D4ED8; }
+.mat-type-badge.interview    { background: #FCE7F3; color: #BE185D; }
+.mat-type-badge.documentary  { background: #EDE9FE; color: #7C3AED; }
+.mat-type-badge.other        { background: var(--clr-surface2); color: var(--clr-text-muted); }
+
+.material-note {
+  font-size: .82rem;
+  color: var(--clr-text-muted);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.material-url {
+  font-size: .8rem;
+  color: var(--clr-primary-dark);
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.material-url:hover { text-decoration: underline; }
+
+/* Step actions */
+.material-step-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.current-step-label {
+  font-size: .8rem;
+  color: var(--clr-text-muted);
+}
+
+.step-advance-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: var(--clr-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  transition: background var(--transition);
+}
+.step-advance-btn:hover { background: var(--clr-primary-dark); }
+
+.done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: #059669;
+  background: #D1FAE5;
+  padding: 4px 10px;
+  border-radius: 10px;
 }
 
 /* ============================================================

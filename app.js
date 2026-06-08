@@ -603,8 +603,12 @@ function renderStats() {
   document.getElementById('statThisWeek').textContent      = (weekMin / 60).toFixed(1) + 'h';
 
   const vocab = load('el_vocab', []);
-  document.getElementById('statVocabTotal').textContent   = vocab.length;
+  document.getElementById('statVocabTotal').textContent    = vocab.length;
   document.getElementById('statVocabMastered').textContent = vocab.filter(v => v.level === 'mastered').length;
+
+  const materials = load('el_materials', []);
+  document.getElementById('statMaterialsDone').textContent       = materials.filter(m => m.step === 'done').length;
+  document.getElementById('statMaterialsInProgress').textContent = materials.filter(m => m.step !== 'done').length;
 
   // Update header streak badge
   const badge = document.getElementById('streakBadge');
@@ -1160,10 +1164,21 @@ function clearVocabForm() {
   document.getElementById('vocabExample').value  = '';
   document.getElementById('vocabSource').value   = '';
   document.getElementById('vocabLevel').value    = 'new';
+  populateVocabMaterialSelect('');
   const s = document.getElementById('vocabLookupStatus');
   const h = document.getElementById('vocabLookupHint');
   if (s) s.textContent = '';
   if (h) h.textContent = '';
+}
+
+function populateVocabMaterialSelect(selectedId) {
+  const sel = document.getElementById('vocabMaterialId');
+  if (!sel) return;
+  const materials = load('el_materials', []);
+  sel.innerHTML = `<option value="">— 不关联 None —</option>` +
+    materials.map(m =>
+      `<option value="${escHtml(m.id)}"${m.id === selectedId ? ' selected' : ''}>${escHtml(m.title)}</option>`
+    ).join('');
 }
 
 function saveVocab() {
@@ -1175,11 +1190,12 @@ function saveVocab() {
 
   const data = {
     word,
-    phonetic: document.getElementById('vocabPhonetic').value.trim(),
-    meaning:  document.getElementById('vocabMeaning').value.trim(),
-    example:  document.getElementById('vocabExample').value.trim(),
-    source:   document.getElementById('vocabSource').value.trim(),
-    level:    document.getElementById('vocabLevel').value,
+    phonetic:   document.getElementById('vocabPhonetic').value.trim(),
+    meaning:    document.getElementById('vocabMeaning').value.trim(),
+    example:    document.getElementById('vocabExample').value.trim(),
+    source:     document.getElementById('vocabSource').value.trim(),
+    level:      document.getElementById('vocabLevel').value,
+    materialId: document.getElementById('vocabMaterialId')?.value || '',
   };
 
   if (editId) {
@@ -1230,8 +1246,11 @@ function renderVocab() {
     return;
   }
 
+  const materials = load('el_materials', []);
   container.className = 'flashcard-grid';
-  container.innerHTML = vocab.map(v => `
+  container.innerHTML = vocab.map(v => {
+    const linkedMat = v.materialId ? materials.find(m => m.id === v.materialId) : null;
+    return `
     <div class="flashcard" data-id="${v.id}">
       <div class="flashcard-inner">
         <!-- FRONT -->
@@ -1248,6 +1267,7 @@ function renderVocab() {
             ${v.meaning  ? `<p class="fc-meaning">${escHtml(v.meaning)}</p>` : '<p class="fc-meaning fc-empty">（无释义 No meaning）</p>'}
             ${v.example  ? `<p class="fc-example">"${escHtml(v.example)}"</p>` : ''}
             ${v.source   ? `<p class="fc-back-source">📌 ${escHtml(v.source)}</p>` : ''}
+            ${linkedMat  ? `<p class="fc-back-source">📄 来源：${escHtml(linkedMat.title)}</p>` : ''}
           </div>
           <div class="fc-level-btns">
             ${['new','familiar','mastered'].map(lv => `
@@ -1259,8 +1279,8 @@ function renderVocab() {
           <button class="fc-delete-btn" data-action="delete-vocab" title="删除 Delete">🗑️</button>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   // event delegation
   container.querySelectorAll('.flashcard').forEach(card => {
@@ -1294,6 +1314,11 @@ function editVocab(id) {
   document.getElementById('vocabExample').value  = v.example  || '';
   document.getElementById('vocabSource').value   = v.source   || '';
   document.getElementById('vocabLevel').value    = v.level;
+  populateVocabMaterialSelect(v.materialId || '');
+  const s = document.getElementById('vocabLookupStatus');
+  const h = document.getElementById('vocabLookupHint');
+  if (s) s.textContent = '';
+  if (h) h.textContent = '';
   document.getElementById('vocabModalTitle').textContent = '编辑单词 Edit Word';
   openModal('vocabModal');
 }
@@ -1446,6 +1471,206 @@ function initNotebook() {
   });
 }
 
+// ─── MATERIALS ────────────────────────────────────────────────────────────────
+
+const MATERIAL_STEPS = ['listening', 'dictation', 'understanding', 'recitation', 'done'];
+
+const STEP_LABELS = {
+  listening:     '🎧 盲听 Blind Listen',
+  dictation:     '✏️ 听写 Dictation',
+  understanding: '📖 吃透 Understand',
+  recitation:    '🗣️ 背诵 Recite',
+  done:          '✅ 已完成 Done',
+};
+
+const MAT_TYPE_LABELS = {
+  news:         '📰 新闻 News',
+  interview:    '🎙 访谈 Interview',
+  documentary:  '🎬 纪录片 Doc',
+  other:        '📁 其他 Other',
+};
+
+let materialFilter = 'all';
+
+function initMaterials() {
+  renderMaterials();
+
+  document.getElementById('openMaterialModal').addEventListener('click', () => {
+    clearMaterialForm();
+    document.getElementById('materialModalTitle').textContent = '添加语料 Add Material';
+    document.getElementById('materialStepRow').style.display = 'none';
+    openModal('materialModal');
+  });
+
+  document.getElementById('saveMaterial').addEventListener('click', saveMaterial);
+
+  document.querySelectorAll('[data-mfilter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-mfilter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      materialFilter = btn.dataset.mfilter;
+      renderMaterials();
+    });
+  });
+}
+
+function clearMaterialForm() {
+  document.getElementById('materialEditId').value      = '';
+  document.getElementById('materialTitle').value       = '';
+  document.getElementById('materialUrl').value         = '';
+  document.getElementById('materialDuration').value    = '10';
+  document.getElementById('materialSourceType').value  = 'news';
+  document.getElementById('materialNote').value        = '';
+  document.getElementById('materialStep').value        = 'listening';
+}
+
+function saveMaterial() {
+  const title = document.getElementById('materialTitle').value.trim();
+  if (!title) { document.getElementById('materialTitle').focus(); return; }
+
+  const materials = load('el_materials', []);
+  const editId    = document.getElementById('materialEditId').value;
+  const step      = document.getElementById('materialStep').value;
+
+  const data = {
+    title,
+    url:        document.getElementById('materialUrl').value.trim(),
+    duration:   parseInt(document.getElementById('materialDuration').value, 10) || 10,
+    sourceType: document.getElementById('materialSourceType').value,
+    note:       document.getElementById('materialNote').value.trim(),
+    step,
+    completedAt: step === 'done' ? todayStr() : '',
+  };
+
+  if (editId) {
+    const idx = materials.findIndex(m => m.id === editId);
+    if (idx !== -1) materials[idx] = { ...materials[idx], ...data };
+  } else {
+    materials.unshift({ id: uid(), createdAt: todayStr(), vocabIds: [], ...data });
+  }
+
+  save('el_materials', materials);
+  renderMaterials();
+  renderStats();
+  closeModal('materialModal');
+}
+
+function advanceMaterialStep(id) {
+  const materials = load('el_materials', []);
+  const m = materials.find(m => m.id === id);
+  if (!m || m.step === 'done') return;
+  const idx = MATERIAL_STEPS.indexOf(m.step);
+  m.step = MATERIAL_STEPS[Math.min(idx + 1, MATERIAL_STEPS.length - 1)];
+  if (m.step === 'done') m.completedAt = todayStr();
+  save('el_materials', materials);
+  renderMaterials();
+  renderStats();
+}
+
+function editMaterial(id) {
+  const materials = load('el_materials', []);
+  const m = materials.find(m => m.id === id);
+  if (!m) return;
+  document.getElementById('materialEditId').value      = m.id;
+  document.getElementById('materialTitle').value       = m.title;
+  document.getElementById('materialUrl').value         = m.url       || '';
+  document.getElementById('materialDuration').value    = m.duration  || 10;
+  document.getElementById('materialSourceType').value  = m.sourceType;
+  document.getElementById('materialNote').value        = m.note      || '';
+  document.getElementById('materialStep').value        = m.step;
+  document.getElementById('materialStepRow').style.display = '';
+  document.getElementById('materialModalTitle').textContent = '编辑语料 Edit Material';
+  openModal('materialModal');
+}
+
+function deleteMaterial(id) {
+  if (!confirm('删除此语料？Delete this material?')) return;
+  save('el_materials', load('el_materials', []).filter(m => m.id !== id));
+  renderMaterials();
+  renderStats();
+}
+
+function renderMaterials() {
+  let materials = load('el_materials', []);
+  const container = document.getElementById('materialList');
+
+  // Update progress bar
+  const total = materials.length;
+  const done  = materials.filter(m => m.step === 'done').length;
+  document.getElementById('materialProgressLabel').textContent =
+    `已完成 ${done} / ${total} 篇`;
+  document.getElementById('materialProgressFill').style.width =
+    total ? `${Math.round((done / total) * 100)}%` : '0%';
+
+  // Apply filter
+  if (materialFilter === 'inprogress')    materials = materials.filter(m => m.step !== 'done');
+  else if (materialFilter === 'done')     materials = materials.filter(m => m.step === 'done');
+  else if (materialFilter !== 'all')      materials = materials.filter(m => m.sourceType === materialFilter);
+
+  if (materials.length === 0) {
+    container.innerHTML = `<div class="empty-state">暂无语料，添加第一条吧！No materials yet, add your first one!</div>`;
+    return;
+  }
+
+  container.innerHTML = materials.map(m => {
+    const stepIdx = MATERIAL_STEPS.indexOf(m.step);
+    const isDone  = m.step === 'done';
+
+    // Build step dots (4 workflow steps, not including 'done')
+    const workSteps = MATERIAL_STEPS.slice(0, 4);
+    const dots = workSteps.map((s, i) => {
+      const isCompleted = isDone || i < stepIdx;
+      const isCurrent   = !isDone && i === stepIdx;
+      const cls = isCompleted ? 'completed' : isCurrent ? 'current' : '';
+      const connectorFilled = isCompleted && i < workSteps.length - 1;
+      const connector = i < workSteps.length - 1
+        ? `<div class="step-connector${connectorFilled ? ' filled' : ''}"></div>`
+        : '';
+      return `<div class="step-dot ${cls}" title="${STEP_LABELS[s]}"></div>${connector}`;
+    }).join('');
+
+    const typeLabel = MAT_TYPE_LABELS[m.sourceType] || m.sourceType;
+    const durationLabel = m.duration ? `${m.duration} min` : '';
+
+    return `
+    <div class="material-card${isDone ? ' is-done' : ''}" data-id="${m.id}">
+      <div class="material-steps">${dots}</div>
+      <div class="material-body">
+        <div class="material-header">
+          <div class="material-title">${escHtml(m.title)}</div>
+          <div class="material-header-actions">
+            <button class="icon-btn edit" data-action="edit-mat"   title="编辑 Edit">✏️</button>
+            <button class="icon-btn"      data-action="delete-mat" title="删除 Delete">🗑️</button>
+          </div>
+        </div>
+        <div class="material-meta">
+          <span class="mat-type-badge ${m.sourceType}">${escHtml(typeLabel)}</span>
+          ${durationLabel ? `<span>${escHtml(durationLabel)}</span>` : ''}
+        </div>
+        ${m.url  ? `<a class="material-url" href="${escAttr(m.url)}" target="_blank" rel="noopener noreferrer">🔗 ${escHtml(truncate(m.url, 50))}</a>` : ''}
+        ${m.note ? `<p class="material-note">${escHtml(m.note)}</p>` : ''}
+        <div class="material-step-info">
+          <span class="current-step-label">${isDone ? '' : `当前步骤 Current: ${escHtml(STEP_LABELS[m.step] || m.step)}`}</span>
+          ${isDone
+            ? `<span class="done-badge">✅ 已完成 Completed${m.completedAt ? ' · ' + escHtml(formatDate(m.completedAt)) : ''}</span>`
+            : `<button class="step-advance-btn" data-action="advance">✓ 完成此步 Mark Done</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const card = e.target.closest('.material-card');
+      const id   = card.dataset.id;
+      const action = btn.dataset.action;
+      if (action === 'advance')    advanceMaterialStep(id);
+      if (action === 'edit-mat')   editMaterial(id);
+      if (action === 'delete-mat') deleteMaterial(id);
+    });
+  });
+}
+
 // ─── Seed initial data ────────────────────────────────────────────────────────
 
 function seedInitialData() {
@@ -1559,6 +1784,7 @@ function init() {
   initReminder();
   initReview();
   initNotebook();
+  initMaterials();
 }
 
 document.addEventListener('DOMContentLoaded', init);
