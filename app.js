@@ -1862,7 +1862,7 @@ const PLAN_STEP_MINUTES = {
 const PLAN_DURATION_DAYS = { '1month': 30, '3months': 90, '6months': 180 };
 
 function initStudyPlan() {
-  // Wire radio btn groups inside plan settings card
+  // Wire radio btn groups (duration, dailyMinutes, level — not daysPerWeek)
   document.querySelectorAll('.plan-settings-card .radio-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const grp = btn.dataset.group;
@@ -1871,6 +1871,15 @@ function initStudyPlan() {
       btn.classList.add('selected');
     });
   });
+
+  // Wire weekday picker (multi-select toggle)
+  document.querySelectorAll('#weekdayPicker .weekday-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      updateWeekdaySummary();
+    });
+  });
+  updateWeekdaySummary();
 
   // Load saved plan and reflect into buttons
   const saved = load('el_study_plan', null);
@@ -1897,18 +1906,36 @@ function initStudyPlan() {
   if (saved) renderStudyPlanSummary();
 }
 
+function updateWeekdaySummary() {
+  const count = document.querySelectorAll('#weekdayPicker .weekday-btn.selected').length;
+  document.getElementById('weekdaySummary').textContent = `已选 ${count} 天 / week`;
+}
+
 function reflectPlanToUI(plan) {
+  // Reflect radio-btn groups (duration, dailyMinutes, level)
   const map = {
-    planDuration:    String(plan.duration),
-    planDailyMinutes:String(plan.dailyMinutes),
-    planDaysPerWeek: String(plan.daysPerWeek),
-    planLevel:       plan.level,
+    planDuration:     String(plan.duration    || '3months'),
+    planDailyMinutes: String(plan.dailyMinutes || '60'),
+    planLevel:        plan.level || 'intermediate',
   };
   for (const [group, val] of Object.entries(map)) {
     document.querySelectorAll(`.plan-settings-card [data-group="${group}"]`).forEach(b => {
       b.classList.toggle('selected', b.dataset.value === val);
     });
   }
+
+  // Reflect weekday picker
+  let days = plan.studyDays;
+  if (!Array.isArray(days)) {
+    // Backwards-compat: old daysPerWeek number field
+    const n = plan.daysPerWeek;
+    if (n === 7) days = [0, 1, 2, 3, 4, 5, 6];
+    else         days = [1, 2, 3, 4, 5]; // default 5 weekdays
+  }
+  document.querySelectorAll('#weekdayPicker .weekday-btn').forEach(btn => {
+    btn.classList.toggle('selected', days.includes(parseInt(btn.dataset.day, 10)));
+  });
+  updateWeekdaySummary();
 }
 
 function readPlanFromUI() {
@@ -1916,10 +1943,13 @@ function readPlanFromUI() {
     const el = document.querySelector(`.plan-settings-card [data-group="${group}"].selected`);
     return el ? el.dataset.value : null;
   };
+  const studyDays = Array.from(
+    document.querySelectorAll('#weekdayPicker .weekday-btn.selected')
+  ).map(b => parseInt(b.dataset.day, 10));
   return {
     duration:     get('planDuration')     || '3months',
     dailyMinutes: parseInt(get('planDailyMinutes') || '60', 10),
-    daysPerWeek:  parseInt(get('planDaysPerWeek')  || '5',  10),
+    studyDays:    studyDays.length > 0 ? studyDays : [1, 2, 3, 4, 5],
     level:        get('planLevel')        || 'intermediate',
   };
 }
@@ -1939,7 +1969,11 @@ function renderStudyPlanSummary() {
   card.style.display = '';
 
   const totalDays    = PLAN_DURATION_DAYS[plan.duration] || 90;
-  const studyDays    = Math.round(totalDays * plan.daysPerWeek / 7);
+  // Support both new studyDays array and legacy daysPerWeek number
+  const daysPerWeekCount = Array.isArray(plan.studyDays)
+    ? plan.studyDays.length
+    : (plan.daysPerWeek || 5);
+  const studyDays    = Math.floor(totalDays * daysPerWeekCount / 7);
   const stepMins     = PLAN_STEP_MINUTES[plan.level] || PLAN_STEP_MINUTES.intermediate;
   const totalPerMat  = stepMins.listening + stepMins.dictation + stepMins.understanding + stepMins.recitation;
   const daysPerMat   = Math.ceil(totalPerMat / plan.dailyMinutes);

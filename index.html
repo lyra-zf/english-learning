@@ -70,10 +70,16 @@
 
           <div class="plan-field">
             <label class="form-label">每周学习天数 Days per Week</label>
-            <div class="radio-group" id="planDaysPerWeek">
-              <span class="radio-btn selected" data-group="planDaysPerWeek" data-value="5">5天 5 Days（工作日 Weekday）</span>
-              <span class="radio-btn" data-group="planDaysPerWeek" data-value="7">7天 7 Days（每天 Every Day）</span>
+            <div class="weekday-picker" id="weekdayPicker">
+              <button class="weekday-btn selected" data-day="1">周一<br><span>Mon</span></button>
+              <button class="weekday-btn selected" data-day="2">周二<br><span>Tue</span></button>
+              <button class="weekday-btn selected" data-day="3">周三<br><span>Wed</span></button>
+              <button class="weekday-btn selected" data-day="4">周四<br><span>Thu</span></button>
+              <button class="weekday-btn selected" data-day="5">周五<br><span>Fri</span></button>
+              <button class="weekday-btn" data-day="6">周六<br><span>Sat</span></button>
+              <button class="weekday-btn" data-day="0">周日<br><span>Sun</span></button>
             </div>
+            <div class="weekday-summary" id="weekdaySummary">已选 5 天 / week</div>
           </div>
 
           <div class="plan-field">

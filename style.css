@@ -1426,6 +1426,58 @@ body {
 .mt-4 { margin-top: 4px; }
 
 /* ============================================================
+   Weekday Picker
+   ============================================================ */
+.weekday-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.weekday-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--clr-border);
+  background: var(--clr-surface2);
+  color: var(--clr-text-muted);
+  font-size: .78rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  transition: all var(--transition);
+  font-family: var(--font);
+}
+
+.weekday-btn span {
+  font-size: .65rem;
+  opacity: .7;
+}
+
+.weekday-btn:hover {
+  border-color: var(--clr-primary);
+  color: var(--clr-primary);
+}
+
+.weekday-btn.selected {
+  background: var(--clr-primary);
+  border-color: var(--clr-primary);
+  color: #fff;
+}
+
+.weekday-btn.selected span { opacity: .85; }
+
+.weekday-summary {
+  margin-top: 6px;
+  font-size: .85rem;
+  color: var(--clr-text-muted);
+}
+
+/* ============================================================
    Step record modal — styled radio button groups
    ============================================================ */
 .radio-group {
