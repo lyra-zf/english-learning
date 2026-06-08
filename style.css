@@ -1426,6 +1426,144 @@ body {
 .mt-4 { margin-top: 4px; }
 
 /* ============================================================
+   Retest Banner
+   ============================================================ */
+.retest-banner {
+  background: var(--clr-primary-light);
+  border-left: 4px solid var(--clr-primary);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: .9rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.retest-banner-btn {
+  background: var(--clr-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 5px 14px;
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.retest-banner-btn:hover { background: var(--clr-primary-dark); }
+
+/* ============================================================
+   Level Test Page
+   ============================================================ */
+.level-test-intro {
+  font-size: .92rem;
+  color: var(--clr-text-muted);
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.level-test-start-btn {
+  font-size: 1rem;
+  padding: 12px 28px;
+  margin-bottom: 24px;
+}
+
+.current-level-card {
+  background: var(--clr-surface);
+  border: 2px solid var(--clr-primary);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.current-level-label {
+  font-size: .85rem;
+  color: var(--clr-text-muted);
+  margin-bottom: 6px;
+}
+
+.current-level-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--clr-primary);
+  line-height: 1.2;
+}
+
+.level-test-history { margin-top: 8px; }
+.level-test-history h3 { font-size: 1rem; font-weight: 600; margin-bottom: 10px; }
+
+.lt-history-item {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: .88rem;
+}
+
+.lt-history-date  { color: var(--clr-text-muted); font-size: .8rem; flex-shrink: 0; }
+.lt-history-mat   { flex: 1; color: var(--clr-text-muted); font-size: .82rem; min-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lt-history-level { font-weight: 700; color: var(--clr-primary); }
+.lt-history-delta { font-size: .82rem; font-weight: 600; }
+.lt-history-delta.up   { color: #059669; }
+.lt-history-delta.down { color: #DC2626; }
+.lt-history-delta.same { color: var(--clr-text-muted); }
+
+/* Level test modal wide variant */
+.modal-wide { max-width: 520px; }
+
+/* Test material card inside modal */
+.test-material-card {
+  background: var(--clr-surface2);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.test-material-title  { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+.test-material-meta   { font-size: .82rem; color: var(--clr-text-muted); margin-bottom: 8px; }
+.test-material-link   { font-size: .85rem; color: var(--clr-primary-dark); text-decoration: none; }
+.test-material-link:hover { text-decoration: underline; }
+
+/* Self-assessment question block */
+.lt-question {
+  margin-bottom: 16px;
+}
+.lt-question-text {
+  font-weight: 600;
+  font-size: .92rem;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* Result display */
+.lt-result-level {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--clr-primary);
+  text-align: center;
+  padding: 16px 0 8px;
+}
+.lt-result-compare {
+  text-align: center;
+  font-size: .9rem;
+  color: var(--clr-text-muted);
+  margin-bottom: 12px;
+}
+
+/* ============================================================
    Weekday Picker
    ============================================================ */
 .weekday-picker {

@@ -22,6 +22,7 @@
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="review">&#128221; 复盘 Review</button>
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="notebook">&#128211; 笔记本 Notebook</button>
     <button class="tab-btn" role="tab" aria-selected="false" data-tab="materials">&#128196; 语料本 Materials</button>
+    <button class="tab-btn" role="tab" aria-selected="false" data-tab="leveltest">&#127919; 水平测试 Level Test</button>
   </nav>
 
   <main class="app-main">
@@ -45,6 +46,8 @@
 
       <!-- Study Plan sub-panel -->
       <div id="plantab-studyplan" class="sub-tab-panel active">
+        <div id="retestBannerPlan" class="retest-banner" style="display:none"></div>
+
         <!-- Settings card -->
         <div class="plan-settings-card mt-12">
           <h3 class="plan-card-title">&#9881;&#65039; 规划设置 Plan Settings</h3>
@@ -85,9 +88,11 @@
           <div class="plan-field">
             <label class="form-label">当前水平 Current Level</label>
             <div class="radio-group" id="planLevel">
-              <span class="radio-btn" data-group="planLevel" data-value="beginner">初级 Beginner</span>
-              <span class="radio-btn selected" data-group="planLevel" data-value="intermediate">中级 Intermediate</span>
-              <span class="radio-btn" data-group="planLevel" data-value="advanced">进阶 Advanced</span>
+              <span class="radio-btn" data-group="planLevel" data-value="a1">A1 · 初级 Beginner</span>
+              <span class="radio-btn" data-group="planLevel" data-value="a2">A2 · 初高级 High-Beginner</span>
+              <span class="radio-btn selected" data-group="planLevel" data-value="b1">B1 · 中级 Intermediate</span>
+              <span class="radio-btn" data-group="planLevel" data-value="b2">B2 · 中高级 High-Intermediate</span>
+              <span class="radio-btn" data-group="planLevel" data-value="c1">C1 · 进阶 Advanced</span>
             </div>
           </div>
 
@@ -166,6 +171,8 @@
         <h2>学习进度 Progress</h2>
         <button class="btn-primary" id="openCheckinModal">&#10003; 今日打卡 Check In Today</button>
       </div>
+
+      <div id="retestBannerProgress" class="retest-banner" style="display:none"></div>
 
       <div class="stats-row">
         <div class="stat-card">
@@ -342,6 +349,38 @@
       </div>
 
       <div class="material-list" id="materialList"></div>
+    </section>
+
+    <!-- ============ LEVEL TEST ============ -->
+    <section id="tab-leveltest" class="tab-panel" aria-label="Level Test">
+      <div class="section-header">
+        <h2>&#127919; 水平测试 Level Test</h2>
+      </div>
+
+      <p class="level-test-intro">
+        通过听一段真实英语材料，自评你的听力理解水平，系统将为你定级并同步更新学习计划。<br>
+        Listen to a real English audio clip, self-assess your comprehension, and the system will determine your level and update your study plan.
+      </p>
+
+      <!-- Current level card (shown when history exists) -->
+      <div id="currentLevelCard" class="current-level-card" style="display:none">
+        <div class="current-level-label">当前水平 Current Level</div>
+        <div class="current-level-value" id="currentLevelDisplay">—</div>
+        <button class="btn-secondary mt-8" id="retestBtn">&#128260; 重新测试 Retest</button>
+      </div>
+
+      <!-- Start button (shown when no history) -->
+      <div id="startTestArea">
+        <button class="btn-primary level-test-start-btn" id="startLevelTest">&#127919; 开始测试 Start Test</button>
+      </div>
+
+      <!-- History -->
+      <div class="level-test-history">
+        <h3>测试历史 Test History</h3>
+        <div id="levelTestHistoryList">
+          <p class="empty-state">暂无测试记录 No test history yet.</p>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -659,6 +698,22 @@
       <div class="modal-footer">
         <button class="btn-secondary" data-close="materialModal">取消 Cancel</button>
         <button class="btn-primary" id="saveMaterial">保存 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Level Test Modal -->
+  <div class="modal-overlay" id="levelTestModal" role="dialog" aria-modal="true" aria-labelledby="levelTestModalTitle">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3 id="levelTestModalTitle">水平测试 Level Test</h3>
+        <button class="modal-close" data-close="levelTestModal">&#10005;</button>
+      </div>
+      <div class="modal-body" id="levelTestModalBody">
+        <!-- dynamically populated per step -->
+      </div>
+      <div class="modal-footer" id="levelTestModalFooter">
+        <!-- dynamically populated per step -->
       </div>
     </div>
   </div>

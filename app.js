@@ -610,6 +610,9 @@ function renderStats() {
   document.getElementById('statMaterialsDone').textContent       = materials.filter(m => m.step === 'done').length;
   document.getElementById('statMaterialsInProgress').textContent = materials.filter(m => m.step !== 'done').length;
 
+  // Retest banner
+  checkRetestBanner('retestBannerProgress');
+
   // Update header streak badge
   const badge = document.getElementById('streakBadge');
   if (streak > 0) {
@@ -1853,13 +1856,24 @@ function renderMaterials() {
 
 // ─── STUDY PLAN ───────────────────────────────────────────────────────────────
 
-const PLAN_STEP_MINUTES = {
-  beginner:     { listening: 60, dictation: 180, understanding: 90, recitation: 120 },
-  intermediate: { listening: 60, dictation: 120, understanding: 60, recitation: 90  },
-  advanced:     { listening: 60, dictation: 90,  understanding: 45, recitation: 60  },
+// Total step minutes per material by CEFR level
+const PLAN_STEP_MINUTES_TOTAL = {
+  a1: 450, a2: 390, b1: 330, b2: 285, c1: 255,
+  // legacy keys kept for backwards compat
+  beginner: 450, intermediate: 330, advanced: 255,
 };
 
 const PLAN_DURATION_DAYS = { '1month': 30, '3months': 90, '6months': 180 };
+
+// CEFR level display labels
+const CEFR_LABELS = {
+  a1: 'A1 · 初级 Beginner',
+  a2: 'A2 · 初高级 High-Beginner',
+  b1: 'B1 · 中级 Intermediate',
+  b2: 'B2 · 中高级 High-Intermediate',
+  c1: 'C1 · 进阶 Advanced',
+};
+const CEFR_ORDER = ['a1', 'a2', 'b1', 'b2', 'c1'];
 
 function initStudyPlan() {
   // Wire radio btn groups (duration, dailyMinutes, level — not daysPerWeek)
@@ -1969,18 +1983,19 @@ function renderStudyPlanSummary() {
   card.style.display = '';
 
   const totalDays    = PLAN_DURATION_DAYS[plan.duration] || 90;
-  // Support both new studyDays array and legacy daysPerWeek number
   const daysPerWeekCount = Array.isArray(plan.studyDays)
     ? plan.studyDays.length
     : (plan.daysPerWeek || 5);
   const studyDays    = Math.floor(totalDays * daysPerWeekCount / 7);
-  const stepMins     = PLAN_STEP_MINUTES[plan.level] || PLAN_STEP_MINUTES.intermediate;
-  const totalPerMat  = stepMins.listening + stepMins.dictation + stepMins.understanding + stepMins.recitation;
+  const totalPerMat  = PLAN_STEP_MINUTES_TOTAL[plan.level] || 330;
   const daysPerMat   = Math.ceil(totalPerMat / plan.dailyMinutes);
   const matsCount    = Math.min(10, Math.floor(studyDays / daysPerMat));
 
   const durationLabel = { '1month': '1个月 1 Month', '3months': '3个月 3 Months', '6months': '半年 6 Months' }[plan.duration] || plan.duration;
-  const levelLabel    = { beginner: '初级 Beginner', intermediate: '中级 Intermediate', advanced: '进阶 Advanced' }[plan.level] || plan.level;
+  const levelLabel    = CEFR_LABELS[plan.level] || plan.level;
+
+  // Retest banner check
+  checkRetestBanner('retestBannerPlan');
 
   // Today's suggestion
   const materials    = load('el_materials', []);
@@ -2023,6 +2038,279 @@ function renderStudyPlanSummary() {
     </div>
     <div class="plan-today-suggestion">&#127919; ${suggestion}</div>
   `;
+}
+
+// ─── LEVEL TEST ───────────────────────────────────────────────────────────────
+
+const LEVEL_TEST_MATERIALS = [
+  { id: 'a1-1', level: 'a1', title: 'OME #1 - My Name',      duration: 1, url: 'https://elllo.org/video/A1BEG/index.htm' },
+  { id: 'a1-2', level: 'a1', title: 'OME #2 - My Job',       duration: 1, url: 'https://elllo.org/video/A1BEG/index.htm' },
+  { id: 'a1-3', level: 'a1', title: 'A1 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/A1/index.html' },
+  { id: 'a2-1', level: 'a2', title: 'A2 One Minute English', duration: 1, url: 'https://elllo.org/video/A2BEG/index.htm' },
+  { id: 'a2-2', level: 'a2', title: 'A2 Views #1',           duration: 3, url: 'https://elllo.org/levels/A2-English-Lessons/A2-VIEWS-01-25.html' },
+  { id: 'a2-3', level: 'a2', title: 'A2 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/A2/index.html' },
+  { id: 'b1-1', level: 'b1', title: 'B1 One Minute English', duration: 1, url: 'https://elllo.org/video/B1INT/index.htm' },
+  { id: 'b1-2', level: 'b1', title: 'B1 Views #1',           duration: 3, url: 'https://elllo.org/levels/B1-English-Lessons/B1-VIEWS-01-25.html' },
+  { id: 'b1-3', level: 'b1', title: 'B1 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/B1/index.html' },
+  { id: 'b2-1', level: 'b2', title: 'B2 One Minute English', duration: 1, url: 'https://elllo.org/video/B2INT/index.htm' },
+  { id: 'b2-2', level: 'b2', title: 'B2 Views #1',           duration: 3, url: 'https://elllo.org/levels/B2-English-Lessons/B2-VIEWS-01-25.html' },
+  { id: 'b2-3', level: 'b2', title: 'B2 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/B2/index.html' },
+  { id: 'c1-1', level: 'c1', title: 'C1 One Minute English', duration: 1, url: 'https://elllo.org/video/C1ADV/index.htm' },
+  { id: 'c1-2', level: 'c1', title: 'C1 Views #1',           duration: 3, url: 'https://elllo.org/levels/C1-English-Lessons/C1-VIEWS-01-25.html' },
+  { id: 'c1-3', level: 'c1', title: 'C1 Sound Grammar',      duration: 2, url: 'https://elllo.org/book/index.html' },
+];
+
+// Test session state
+let _ltMaterial = null;  // chosen material for current test
+let _ltAnswers  = {};    // q1/q2/q3 answers
+
+function calcLevel(materialLevel, q1, q2, q3) {
+  const score =
+    ({ low: 0, mid: 1, high: 2 }[q1] || 0) +
+    ({ slow: 0, ok: 1, easy: 2 }[q2] || 0) +
+    ({ no: 0, roughly: 1, yes: 2 }[q3] || 0);
+  const idx = CEFR_ORDER.indexOf(materialLevel);
+  if (idx === -1) return 'b1';
+  let resultIdx = idx;
+  if (score <= 1)      resultIdx = Math.max(0, idx - 1);
+  else if (score >= 5) resultIdx = Math.min(4, idx + 1);
+  return CEFR_ORDER[resultIdx];
+}
+
+function initLevelTest() {
+  renderLevelTestPage();
+
+  document.getElementById('startLevelTest').addEventListener('click', openLevelTest);
+  document.getElementById('retestBtn').addEventListener('click', openLevelTest);
+}
+
+function openLevelTest() {
+  _ltAnswers = {};
+  const tests   = load('el_level_tests', []);
+  const last    = tests.length > 0 ? tests[tests.length - 1] : null;
+  const targetLevel = last ? last.resultLevel : 'b1';
+  const pool    = LEVEL_TEST_MATERIALS.filter(m => m.level === targetLevel);
+  _ltMaterial   = pool[Math.floor(Math.random() * pool.length)] || LEVEL_TEST_MATERIALS[6];
+  showLevelTestStep1();
+  openModal('levelTestModal');
+}
+
+function showLevelTestStep1() {
+  document.getElementById('levelTestModalTitle').textContent = '水平测试 — 第1步 Step 1 of 3';
+
+  document.getElementById('levelTestModalBody').innerHTML = `
+    <p style="font-size:.88rem;color:var(--clr-text-muted);margin-bottom:12px;">
+      请点击下方链接收听材料，听完后点击「下一步」。<br>
+      Click the link below to listen, then click "Next" when done.
+    </p>
+    <div class="test-material-card">
+      <div class="test-material-title">${escHtml(_ltMaterial.title)}</div>
+      <div class="test-material-meta">
+        <span class="level-badge ${_ltMaterial.level}">${escHtml(CEFR_LABELS[_ltMaterial.level] || _ltMaterial.level)}</span>
+        &nbsp;${_ltMaterial.duration} min
+      </div>
+      <a class="test-material-link" href="${escAttr(_ltMaterial.url)}" target="_blank" rel="noopener noreferrer">
+        &#128279; 打开收听链接 Open Listening Link ↗
+      </a>
+    </div>`;
+
+  document.getElementById('levelTestModalFooter').innerHTML = `
+    <button class="btn-secondary" data-close="levelTestModal">取消 Cancel</button>
+    <button class="btn-primary" id="ltNext1">下一步 Next &#8594;</button>`;
+
+  document.getElementById('ltNext1').addEventListener('click', showLevelTestStep2);
+}
+
+function showLevelTestStep2() {
+  document.getElementById('levelTestModalTitle').textContent = '水平测试 — 第2步 Step 2 of 3';
+
+  const makeQ = (id, text, options) => `
+    <div class="lt-question">
+      <div class="lt-question-text">${text}</div>
+      <div class="radio-group" id="${id}">
+        ${options.map(([val, label]) =>
+          `<span class="radio-btn" data-ltgroup="${id}" data-value="${val}">${escHtml(label)}</span>`
+        ).join('')}
+      </div>
+    </div>`;
+
+  document.getElementById('levelTestModalBody').innerHTML =
+    makeQ('ltQ1', 'Q1：你听懂了多少内容？How much did you understand?', [
+      ['low',  '< 30%（大部分没听懂 Mostly unclear）'],
+      ['mid',  '30–70%（大概能跟上 Roughly followed）'],
+      ['high', '> 70%（基本听懂 Mostly understood）'],
+    ]) +
+    makeQ('ltQ2', 'Q2：你能跟上语速吗？Could you follow the speaking speed?', [
+      ['slow', '完全跟不上（Too fast）'],
+      ['ok',   '勉强跟上（Manageable）'],
+      ['easy', '轻松跟上（Comfortable）'],
+    ]) +
+    makeQ('ltQ3', 'Q3：你能复述大意吗？Could you summarize the main idea?', [
+      ['no',      '不能（No）'],
+      ['roughly', '大概能（Roughly）'],
+      ['yes',     '基本能（Yes）'],
+    ]);
+
+  document.getElementById('levelTestModalFooter').innerHTML = `
+    <button class="btn-secondary" id="ltBack2">&#8592; 上一步 Back</button>
+    <button class="btn-primary"   id="ltConfirm2">确认并定级 Confirm &amp; Get Result</button>`;
+
+  // Wire radio groups
+  document.getElementById('levelTestModalBody').querySelectorAll('.radio-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const grp = btn.dataset.ltgroup;
+      document.querySelectorAll(`[data-ltgroup="${grp}"]`).forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+
+  document.getElementById('ltBack2').addEventListener('click', showLevelTestStep1);
+  document.getElementById('ltConfirm2').addEventListener('click', () => {
+    _ltAnswers.q1 = document.querySelector('[data-ltgroup="ltQ1"].selected')?.dataset.value || 'mid';
+    _ltAnswers.q2 = document.querySelector('[data-ltgroup="ltQ2"].selected')?.dataset.value || 'ok';
+    _ltAnswers.q3 = document.querySelector('[data-ltgroup="ltQ3"].selected')?.dataset.value || 'roughly';
+    showLevelTestStep3();
+  });
+}
+
+function showLevelTestStep3() {
+  document.getElementById('levelTestModalTitle').textContent = '水平测试 — 结果 Result';
+
+  const tests    = load('el_level_tests', []);
+  const prevTest = tests.length > 0 ? tests[tests.length - 1] : null;
+  const prevLevel = prevTest ? prevTest.resultLevel : null;
+  const result   = calcLevel(_ltMaterial.level, _ltAnswers.q1, _ltAnswers.q2, _ltAnswers.q3);
+  const resultLabel = CEFR_LABELS[result] || result;
+
+  let compareHtml = '';
+  if (prevLevel) {
+    const pi = CEFR_ORDER.indexOf(prevLevel);
+    const ri = CEFR_ORDER.indexOf(result);
+    if (ri > pi)      compareHtml = `<div class="lt-result-compare" style="color:#059669">📈 较上次提升！（上次：${escHtml(CEFR_LABELS[prevLevel] || prevLevel)}）</div>`;
+    else if (ri < pi) compareHtml = `<div class="lt-result-compare" style="color:#DC2626">📉 较上次下降（上次：${escHtml(CEFR_LABELS[prevLevel] || prevLevel)}）</div>`;
+    else              compareHtml = `<div class="lt-result-compare">➡️ 与上次持平（${escHtml(CEFR_LABELS[prevLevel] || prevLevel)}）</div>`;
+  }
+
+  document.getElementById('levelTestModalBody').innerHTML = `
+    <div class="lt-result-level">🎉 你的水平：${escHtml(resultLabel)}</div>
+    ${compareHtml}
+    <p style="font-size:.85rem;color:var(--clr-text-muted);text-align:center">
+      点击「应用此结果」将更新你的学习计划水平设置。<br>
+      Click "Apply Result" to update your study plan level.
+    </p>`;
+
+  document.getElementById('levelTestModalFooter').innerHTML = `
+    <button class="btn-secondary" data-close="levelTestModal">取消 Cancel</button>
+    <button class="btn-primary"   id="ltApply">&#9989; 应用此结果 Apply Result</button>`;
+
+  document.getElementById('ltApply').addEventListener('click', () => {
+    // Save test record
+    const record = {
+      id: uid(), date: todayStr(),
+      materialId: _ltMaterial.id, materialLevel: _ltMaterial.level,
+      q1: _ltAnswers.q1, q2: _ltAnswers.q2, q3: _ltAnswers.q3,
+      resultLevel: result, prevLevel,
+    };
+    const tests = load('el_level_tests', []);
+    tests.push(record);
+    save('el_level_tests', tests);
+
+    // Update study plan level
+    const plan = load('el_study_plan', null);
+    if (plan) {
+      plan.level = result;
+      save('el_study_plan', plan);
+      // Reflect into UI radio buttons
+      document.querySelectorAll('.plan-settings-card [data-group="planLevel"]').forEach(b => {
+        b.classList.toggle('selected', b.dataset.value === result);
+      });
+    }
+
+    closeModal('levelTestModal');
+    renderLevelTestPage();
+    if (plan) renderStudyPlanSummary();
+  });
+}
+
+function renderLevelTestPage() {
+  const tests = load('el_level_tests', []);
+  const hasTested = tests.length > 0;
+
+  // Current level card / start button
+  document.getElementById('currentLevelCard').style.display = hasTested ? '' : 'none';
+  document.getElementById('startTestArea').style.display    = hasTested ? 'none' : '';
+
+  if (hasTested) {
+    const last = tests[tests.length - 1];
+    document.getElementById('currentLevelDisplay').textContent =
+      CEFR_LABELS[last.resultLevel] || last.resultLevel;
+  }
+
+  // History list
+  const container = document.getElementById('levelTestHistoryList');
+  if (tests.length === 0) {
+    container.innerHTML = `<p class="empty-state">暂无测试记录 No test history yet.</p>`;
+    return;
+  }
+
+  const sorted = [...tests].reverse();
+  container.innerHTML = sorted.map((t, i) => {
+    const prevTest = sorted[i + 1];
+    const prevLevel = t.prevLevel;
+    let delta = '';
+    if (prevLevel) {
+      const pi = CEFR_ORDER.indexOf(prevLevel);
+      const ri = CEFR_ORDER.indexOf(t.resultLevel);
+      if (ri > pi)      delta = `<span class="lt-history-delta up">↑ 提升</span>`;
+      else if (ri < pi) delta = `<span class="lt-history-delta down">↓ 下降</span>`;
+      else              delta = `<span class="lt-history-delta same">→ 持平</span>`;
+    }
+    const mat = LEVEL_TEST_MATERIALS.find(m => m.id === t.materialId);
+    return `
+    <div class="lt-history-item">
+      <span class="lt-history-date">${formatDate(t.date)}</span>
+      <span class="lt-history-mat">${escHtml(mat ? mat.title : t.materialId)}</span>
+      <span class="lt-history-level">${escHtml(CEFR_LABELS[t.resultLevel] || t.resultLevel)}</span>
+      ${delta}
+    </div>`;
+  }).join('');
+}
+
+function checkRetestBanner(bannerId) {
+  const banner = document.getElementById(bannerId);
+  if (!banner) return;
+
+  const checkins  = load(KEY.checkins, []);
+  const materials = load('el_materials', []);
+  const tests     = load('el_level_tests', []);
+
+  const daysLogged = checkins.length;
+  const matsDone   = materials.filter(m => m.step === 'done').length;
+
+  if (daysLogged < 30 || matsDone < 5) { banner.style.display = 'none'; return; }
+
+  const last = tests.length > 0 ? tests[tests.length - 1] : null;
+  const daysSince = last
+    ? Math.round((new Date(todayStr() + 'T00:00:00') - new Date(last.date + 'T00:00:00')) / 86400000)
+    : 9999;
+  if (daysSince < 30) { banner.style.display = 'none'; return; }
+
+  banner.style.display = '';
+  banner.innerHTML = `
+    <span>&#128202; 你已学习 ${daysLogged} 天，完成 ${matsDone} 篇语料，建议做一次水平复测！You've studied ${daysLogged} days and finished ${matsDone} materials — time for a level retest!</span>
+    <button class="retest-banner-btn" onclick="switchTab('leveltest'); openLevelTest()">立即测试 Test Now →</button>`;
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const active = b.dataset.tab === tabId;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('tab-' + tabId);
+  if (panel) panel.classList.add('active');
+  if (tabId === 'progress') renderChart(currentChartRange);
 }
 
 // ─── Seed initial data ────────────────────────────────────────────────────────
@@ -2116,6 +2404,7 @@ function init() {
   initReview();
   initNotebook();
   initMaterials();
+  initLevelTest();
 }
 
 document.addEventListener('DOMContentLoaded', init);
